@@ -223,10 +223,11 @@ func newApp(dir string) (*app, error) {
 	}
 	if a.state.Version < 10 {
 		// Browser publisher is opt-in per approved item; no legacy queue is sent.
-		a.state.Config.VKBrowserMode = true
-		a.state.Config.VKPostponedOnApproval = false
 		a.state.Version = 10
 	}
+	// Enforce manual publication even when a restored state contains legacy flags.
+	a.state.Config.VKBrowserMode = true
+	a.state.Config.VKPostponedOnApproval = false
 	if a.state.Config.VKCommunityURL == "" {
 		a.state.Config.VKCommunityURL = "https://vk.ru/malowargaming"
 	}

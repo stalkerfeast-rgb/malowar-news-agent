@@ -31,9 +31,13 @@ func TestVKCDPOnLocalMock(t *testing.T) {
 	if os.Getenv("MNA_LIVE_CDP_TEST") != "1" {
 		t.Skip("Live Chromium integration is opt-in; run on a suitable desktop")
 	}
-	chrome, e := exec.LookPath("chromium")
+	browser := os.Getenv("MNA_CHROMIUM_PATH")
+	if browser == "" {
+		browser = "chromium"
+	}
+	chrome, e := exec.LookPath(browser)
 	if e != nil {
-		t.Skip("Chromium unavailable")
+		t.Fatalf("Chromium unavailable: %v", e)
 	}
 	dir, mkErr := os.MkdirTemp("", "mna-cdp-test-")
 	if mkErr != nil {

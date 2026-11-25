@@ -114,6 +114,25 @@ func TestBrowserPrepareRefusesDuplicatesAndStaleContent(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestRestoredStateCannotEnableLegacyVKPublisher(t *testing.T) {
+	a, err := newApp(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.state.Config.VKBrowserMode = false
+	a.state.Config.VKPostponedOnApproval = true
+	if err := a.persistLocked(); err != nil {
+		t.Fatal(err)
+	}
+	restored, err := newApp(a.dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !restored.state.Config.VKBrowserMode || restored.state.Config.VKPostponedOnApproval {
+		t.Fatal("restored state enabled legacy VK publication")
+	}
+}
 func TestBrowserMigrationStopsOldAPIAutomation(t *testing.T) {
 	a, _ := newApp(t.TempDir())
 	it := testBrowserItem(t, a)

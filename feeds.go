@@ -271,11 +271,14 @@ func (a *app) checkNow() {
 	}
 	a.checking = true
 	c := a.state.Config
+	previousWorkshopRanks := a.state.WorkshopRanks
 	a.mu.Unlock()
 	go func() {
 		defer func() { a.mu.Lock(); a.checking = false; a.mu.Unlock() }()
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
+		ranks := make(chan map[int]workshopRanking, 1)
+		go func() { ranks <- scanWorkshopRankings(ctx, previousWorkshopRanks, time.Now().UTC()) }()
 		all := []Item{}
 		errs := []string{}
 		for _, s := range c.Steam {
@@ -326,7 +329,7 @@ func (a *app) checkNow() {
 						exists := a.getItemLocked(it[i].ID) != nil
 						a.mu.Unlock()
 						if !exists && !it[i].Time.Before(time.Now().AddDate(0, 0, -14)) {
-							it[i].Excerpt = workshopChangeText(ctx, id, it[i].Time.Unix())
+							enrichWorkshopUpdate(ctx, id, &it[i])
 						}
 					}
 				}
@@ -405,7 +408,9 @@ func (a *app) checkNow() {
 				}
 			}
 		}
+		workshopRanks := <-ranks
 		a.mu.Lock()
+		a.state.WorkshopRanks = workshopRanks
 		known := map[string]bool{}
 		fingerprints := map[string]bool{}
 		for _, it := range a.state.Items {

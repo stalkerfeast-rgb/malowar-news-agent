@@ -61,50 +61,51 @@ type RSSSource struct {
 	URL  string `json:"url"`
 }
 type Item struct {
-	ID                   string       `json:"id"`
-	Source               string       `json:"source"`
-	Game                 string       `json:"game"`
-	Title                string       `json:"title"`
-	URL                  string       `json:"url"`
-	Time                 time.Time    `json:"time"`
-	Excerpt              string       `json:"excerpt"`
-	Category             string       `json:"category"`
-	ParentGame           string       `json:"parent_game,omitempty"`
-	WorkshopChangelog    string       `json:"workshop_changelog,omitempty"`
-	EditorialOverride    string       `json:"editorial_override,omitempty"`
-	EditorialBucket      string       `json:"editorial_bucket,omitempty"`
-	EventKind            string       `json:"event_kind,omitempty"`
-	State                string       `json:"state"`
-	Draft                string       `json:"draft"`
-	Images               []string     `json:"images"`
-	Verified             bool         `json:"verified"`
-	VKPostID             int64        `json:"vk_post_id,omitempty"`
-	Error                string       `json:"error,omitempty"`
-	Comment              string       `json:"comment"`
-	CommentID            int64        `json:"comment_id,omitempty"`
-	CommentState         string       `json:"comment_state,omitempty"`
-	RewriteStatus        string       `json:"rewrite_status,omitempty"`
-	AIOptions            *AIVariants  `json:"ai_options,omitempty"`
-	MediaSources         []string     `json:"media_sources,omitempty"`
-	MediaLabels          []string     `json:"media_labels,omitempty"`
-	MediaFocus           string       `json:"media_focus,omitempty"`
-	MediaStatus          string       `json:"media_status,omitempty"`
-	MediaError           string       `json:"media_error,omitempty"`
-	Priority             int          `json:"priority"`
-	ScheduledAt          time.Time    `json:"scheduled_at,omitempty"`
-	PublishedAt          time.Time    `json:"published_at,omitempty"`
-	DiffSummary          string       `json:"diff_summary,omitempty"`
-	VKStats              *VKMetrics   `json:"vk_stats,omitempty"`
-	Awards               *CoverAwards `json:"awards,omitempty"`
-	AwardsOriginal       string       `json:"awards_original,omitempty"`
-	AwardsHero           string       `json:"awards_hero,omitempty"`
-	VKQueueError         string       `json:"vk_queue_error,omitempty"`
-	VKBrowserPreparedAt  time.Time    `json:"vk_browser_prepared_at,omitempty"`
-	VKBrowserMarkedAt    time.Time    `json:"vk_browser_marked_at,omitempty"`
-	VKBrowserExportDir   string       `json:"vk_browser_export_dir,omitempty"`
-	VKBrowserFingerprint string       `json:"vk_browser_fingerprint,omitempty"`
-	VKBrowserAutoFillAt  time.Time    `json:"vk_browser_auto_fill_at,omitempty"`
-	VKBrowserAutoPhotos  bool         `json:"vk_browser_auto_photos,omitempty"`
+	ID                   string               `json:"id"`
+	Source               string               `json:"source"`
+	Game                 string               `json:"game"`
+	Title                string               `json:"title"`
+	URL                  string               `json:"url"`
+	Time                 time.Time            `json:"time"`
+	Excerpt              string               `json:"excerpt"`
+	Category             string               `json:"category"`
+	ParentGame           string               `json:"parent_game,omitempty"`
+	WorkshopChangelog    string               `json:"workshop_changelog,omitempty"`
+	WorkshopSources      []workshopSourceLink `json:"workshop_sources,omitempty"`
+	EditorialOverride    string               `json:"editorial_override,omitempty"`
+	EditorialBucket      string               `json:"editorial_bucket,omitempty"`
+	EventKind            string               `json:"event_kind,omitempty"`
+	State                string               `json:"state"`
+	Draft                string               `json:"draft"`
+	Images               []string             `json:"images"`
+	Verified             bool                 `json:"verified"`
+	VKPostID             int64                `json:"vk_post_id,omitempty"`
+	Error                string               `json:"error,omitempty"`
+	Comment              string               `json:"comment"`
+	CommentID            int64                `json:"comment_id,omitempty"`
+	CommentState         string               `json:"comment_state,omitempty"`
+	RewriteStatus        string               `json:"rewrite_status,omitempty"`
+	AIOptions            *AIVariants          `json:"ai_options,omitempty"`
+	MediaSources         []string             `json:"media_sources,omitempty"`
+	MediaLabels          []string             `json:"media_labels,omitempty"`
+	MediaFocus           string               `json:"media_focus,omitempty"`
+	MediaStatus          string               `json:"media_status,omitempty"`
+	MediaError           string               `json:"media_error,omitempty"`
+	Priority             int                  `json:"priority"`
+	ScheduledAt          time.Time            `json:"scheduled_at,omitempty"`
+	PublishedAt          time.Time            `json:"published_at,omitempty"`
+	DiffSummary          string               `json:"diff_summary,omitempty"`
+	VKStats              *VKMetrics           `json:"vk_stats,omitempty"`
+	Awards               *CoverAwards         `json:"awards,omitempty"`
+	AwardsOriginal       string               `json:"awards_original,omitempty"`
+	AwardsHero           string               `json:"awards_hero,omitempty"`
+	VKQueueError         string               `json:"vk_queue_error,omitempty"`
+	VKBrowserPreparedAt  time.Time            `json:"vk_browser_prepared_at,omitempty"`
+	VKBrowserMarkedAt    time.Time            `json:"vk_browser_marked_at,omitempty"`
+	VKBrowserExportDir   string               `json:"vk_browser_export_dir,omitempty"`
+	VKBrowserFingerprint string               `json:"vk_browser_fingerprint,omitempty"`
+	VKBrowserAutoFillAt  time.Time            `json:"vk_browser_auto_fill_at,omitempty"`
+	VKBrowserAutoPhotos  bool                 `json:"vk_browser_auto_photos,omitempty"`
 }
 type AuditEvent struct {
 	At      time.Time `json:"at"`
@@ -113,18 +114,19 @@ type AuditEvent struct {
 	Details string    `json:"details"`
 }
 type saved struct {
-	Audit        []AuditEvent   `json:"audit"`
-	Version      int            `json:"version"`
-	Discovered   []SteamSource  `json:"discovered"`
-	ScanCursor   int            `json:"scan_cursor"`
-	Config       Config         `json:"config"`
-	Items        []*Item        `json:"items"`
-	Radar        []ReleaseGame  `json:"radar,omitempty"`
-	RadarChecked time.Time      `json:"radar_checked,omitempty"`
-	RadarError   string         `json:"radar_error,omitempty"`
-	AwardCatalog []CatalogAward `json:"award_catalog,omitempty"`
-	LastCheck    time.Time      `json:"last_check"`
-	LastError    string         `json:"last_error"`
+	Audit         []AuditEvent            `json:"audit"`
+	Version       int                     `json:"version"`
+	Discovered    []SteamSource           `json:"discovered"`
+	ScanCursor    int                     `json:"scan_cursor"`
+	Config        Config                  `json:"config"`
+	Items         []*Item                 `json:"items"`
+	Radar         []ReleaseGame           `json:"radar,omitempty"`
+	RadarChecked  time.Time               `json:"radar_checked,omitempty"`
+	RadarError    string                  `json:"radar_error,omitempty"`
+	WorkshopRanks map[int]workshopRanking `json:"workshop_ranks,omitempty"`
+	AwardCatalog  []CatalogAward          `json:"award_catalog,omitempty"`
+	LastCheck     time.Time               `json:"last_check"`
+	LastError     string                  `json:"last_error"`
 }
 type app struct {
 	mu         sync.Mutex
@@ -326,6 +328,7 @@ func (a *app) snapshot() map[string]any {
 		copyIt.EventKind = eventKind(copyIt)
 		if id := featuredWorkshopID(copyIt); id != "" {
 			copyIt.WorkshopChangelog = workshopChangesURL + id
+			copyIt.WorkshopSources = append(append([]workshopSourceLink(nil), it.WorkshopSources...), featuredWorkshopLinks[id]...)
 		}
 		if it.AIOptions != nil {
 			v := *it.AIOptions
@@ -336,7 +339,7 @@ func (a *app) snapshot() map[string]any {
 		items = append(items, &copyIt)
 	}
 	sort.Slice(items, func(i, j int) bool { return items[i].Time.After(items[j].Time) })
-	return map[string]any{"audit": a.state.Audit, "config": a.state.Config, "items": items, "last_check": a.state.LastCheck, "last_error": a.state.LastError, "checking": a.checking, "posting": a.posting, "vk_connected": a.token != "", "vk_token_saved": a.vkVault != "" && a.token != "", "vk_token_storage_error": a.vkVaultErr, "data_dir": a.dataDir, "discovered_count": len(a.state.Discovered), "ai_key_connected": a.aiKey != "", "ai_busy": a.aiBusy, "local_ai_enabled": a.state.Config.LocalAIEnabled, "radar": a.radarTopLocked(), "radar_all": a.radarAllLocked(), "radar_checked": a.state.RadarChecked, "radar_error": a.state.RadarError, "radar_busy": a.radarBusy, "award_catalog": a.state.AwardCatalog}
+	return map[string]any{"audit": a.state.Audit, "config": a.state.Config, "items": items, "last_check": a.state.LastCheck, "last_error": a.state.LastError, "checking": a.checking, "posting": a.posting, "vk_connected": a.token != "", "vk_token_saved": a.vkVault != "" && a.token != "", "vk_token_storage_error": a.vkVaultErr, "data_dir": a.dataDir, "discovered_count": len(a.state.Discovered), "ai_key_connected": a.aiKey != "", "ai_busy": a.aiBusy, "local_ai_enabled": a.state.Config.LocalAIEnabled, "radar": a.radarTopLocked(), "radar_all": a.radarAllLocked(), "radar_checked": a.state.RadarChecked, "radar_error": a.state.RadarError, "radar_busy": a.radarBusy, "workshop_ranks": a.state.WorkshopRanks, "award_catalog": a.state.AwardCatalog}
 }
 func (a *app) updateConfig(c Config) error {
 	if _, err := validateSlots(c.PostSlots); err != nil {

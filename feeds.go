@@ -125,7 +125,7 @@ func fetchWorkshop(ctx context.Context, s WorkshopSource) ([]Item, error) {
 	if game == "" {
 		game = d.Title
 	}
-	it := Item{ID: uid("workshop", s.FileID, strconv.FormatInt(d.Updated, 10)), Source: "Workshop", Game: game, Title: d.Title + " — обновление мода", URL: "https://steamcommunity.com/sharedfiles/filedetails/?id=" + s.FileID, Time: time.Unix(d.Updated, 0).UTC(), Excerpt: plain(d.Description), Category: "Моды", ParentGame: s.ParentGame}
+	it := Item{ID: uid("workshop", s.FileID, strconv.FormatInt(d.Updated, 10)), Source: "Workshop", Game: game, Title: d.Title + " — обновление мода", URL: workshopItemURL + s.FileID, Time: time.Unix(d.Updated, 0).UTC(), Excerpt: plain(d.Description), Category: "Моды", ParentGame: s.ParentGame}
 	return []Item{it}, nil
 }
 func fetchGitHub(ctx context.Context, repo string) ([]Item, error) {
@@ -315,11 +315,21 @@ func (a *app) checkNow() {
 				all = append(all, news...)
 			}
 		}
-		for _, s := range c.Workshop {
+		for _, s := range workshopSources(c.Workshop) {
 			it, e := fetchWorkshop(ctx, s)
 			if e != nil {
 				errs = append(errs, "Workshop "+s.FileID+": "+e.Error())
 			} else {
+				for i := range it {
+					if id := featuredWorkshopID(it[i]); id != "" {
+						a.mu.Lock()
+						exists := a.getItemLocked(it[i].ID) != nil
+						a.mu.Unlock()
+						if !exists && !it[i].Time.Before(time.Now().AddDate(0, 0, -14)) {
+							it[i].Excerpt = workshopChangeText(ctx, id, it[i].Time.Unix())
+						}
+					}
+				}
 				all = append(all, it...)
 			}
 		}
@@ -408,7 +418,7 @@ func (a *app) checkNow() {
 				continue
 			}
 			fingerprint := normalizeNewsFingerprint(it.Game + " " + it.Title)
-			if fingerprints[fingerprint] {
+			if it.Source != "Workshop" && fingerprints[fingerprint] {
 				continue
 			}
 			if c.SkipHotfixes && strings.Contains(strings.ToLower(it.Title), "hotfix") {
@@ -449,7 +459,7 @@ func (a *app) checkNow() {
 				}
 				a.mu.Lock()
 				record := a.getItemLocked(it.ID)
-				ready := record != nil && record.State == "new" && record.RewriteStatus == ""
+				ready := record != nil && record.State == "new" && record.RewriteStatus == "" && (featuredWorkshopID(*record) == "" || record.Excerpt != "")
 				a.mu.Unlock()
 				if ready {
 					_ = a.rewriteItem(ctx, it.ID)

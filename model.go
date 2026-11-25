@@ -70,6 +70,7 @@ type Item struct {
 	Excerpt              string       `json:"excerpt"`
 	Category             string       `json:"category"`
 	ParentGame           string       `json:"parent_game,omitempty"`
+	WorkshopChangelog    string       `json:"workshop_changelog,omitempty"`
 	EditorialOverride    string       `json:"editorial_override,omitempty"`
 	EditorialBucket      string       `json:"editorial_bucket,omitempty"`
 	EventKind            string       `json:"event_kind,omitempty"`
@@ -323,6 +324,9 @@ func (a *app) snapshot() map[string]any {
 		copyIt.MediaLabels = append([]string(nil), it.MediaLabels...)
 		copyIt.EditorialBucket = editorialBucket(copyIt, a.state.Config)
 		copyIt.EventKind = eventKind(copyIt)
+		if id := featuredWorkshopID(copyIt); id != "" {
+			copyIt.WorkshopChangelog = workshopChangesURL + id
+		}
 		if it.AIOptions != nil {
 			v := *it.AIOptions
 			v.ShortWarnings = append([]string(nil), v.ShortWarnings...)

@@ -1,0 +1,9 @@
+//go:build !windows
+
+package main
+
+import (
+	"os/exec"
+)
+
+func openAppWindow(url string) { _ = exec.Command("xdg-open", url).Start() }

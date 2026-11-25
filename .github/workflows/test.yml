@@ -1,0 +1,22 @@
+name: Build and test Malowar News Agent
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Unit tests
+        run: go test -count=1 ./...
+      - name: Static checks
+        run: go vet ./...
+      - name: Cross-compile Windows app
+        run: GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -o Malowar_News_Agent.exe .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MalowarNewsAgent-Windows
+          path: Malowar_News_Agent.exe

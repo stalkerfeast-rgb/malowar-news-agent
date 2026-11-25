@@ -1,0 +1,28 @@
+name: Windows release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Test and build
+        shell: pwsh
+        run: |
+          go test ./...
+          go build -trimpath -ldflags="-s -w -H windowsgui" -o Malowar_News_Agent.exe .
+          Compress-Archive -Path Malowar_News_Agent.exe -DestinationPath Malowar_News_Agent_Update.zip -Force
+          $hash = (Get-FileHash -Algorithm SHA256 Malowar_News_Agent_Update.zip).Hash.ToLowerInvariant()
+          Set-Content -Encoding ascii -NoNewline -Path Malowar_News_Agent_Update.zip.sha256 -Value $hash
+      - name: Publish verified release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            Malowar_News_Agent_Update.zip
+            Malowar_News_Agent_Update.zip.sha256

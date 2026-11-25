@@ -43,8 +43,14 @@ func parseWorkshopRanking(body []byte, appID int) []workshopRankItem {
 	if match := workshopSSR.FindSubmatch(body); len(match) == 2 {
 		var page struct {
 			LoaderData []string `json:"loaderData"`
+			RenderContext struct {
+				QueryData string `json:"queryData"`
+			} `json:"renderContext"`
 		}
 		if json.Unmarshal(match[1], &page) == nil {
+			if items := decodeWorkshopRanking([]byte(page.RenderContext.QueryData), appID); len(items) != 0 {
+				return items
+			}
 			for _, data := range page.LoaderData {
 				if items := decodeWorkshopRanking([]byte(data), appID); len(items) != 0 {
 					return items

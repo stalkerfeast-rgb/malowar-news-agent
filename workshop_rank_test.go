@@ -13,7 +13,7 @@ func TestParseWorkshopRankingReadsSteamLoaderAndFiltersCollections(t *testing.T)
 		{"publishedfileid":"3","consumer_appid":1,"file_type":0,"title":"Wrong game"},
 		{"publishedfileid":"4","consumer_appid":394360,"file_type":0,"title":"Second"}
 	]}`
-	payload, err := json.Marshal(map[string][]string{"loaderData": {"", loader}})
+	payload, err := json.Marshal(map[string]any{"renderContext": map[string]string{"queryData": loader}})
 	if err != nil {
 		t.Fatal(err)
 	}

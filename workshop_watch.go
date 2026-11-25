@@ -22,6 +22,7 @@ var featuredWorkshopLinks = map[string][]workshopSourceLink{
 	"2887120253": {
 		{"Файлы и версии на Nexus Mods", "https://www.nexusmods.com/crusaderkings3/mods/32?tab=files"},
 		{"Пресс-кит Elder Kings II", "https://www.elderkings.com/index.php/press"},
+		{"Скриншоты команды Elder Kings II", "https://elderkings.com/index.php/gallery"},
 	},
 }
 

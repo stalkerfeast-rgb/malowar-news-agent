@@ -273,6 +273,7 @@ func (a *app) checkNow() {
 	c := a.state.Config
 	previousWorkshopRanks := a.state.WorkshopRanks
 	lastWorkshopNewsCheck := a.state.WorkshopNewsChecked
+	lastWarhammerCheck := a.state.WarhammerChecked
 	knownWorkshopNews := map[string]bool{}
 	for _, item := range a.state.Items {
 		if item.Source == "Workshop" {
@@ -288,6 +289,19 @@ func (a *app) checkNow() {
 		ranks := make(chan map[int]workshopRanking, 1)
 		workshopNews := make(chan []Item, 1)
 		now := time.Now().UTC()
+		type franchiseNews struct {
+			items   []Item
+			checked bool
+		}
+		warhammer := make(chan franchiseNews, 1)
+		go func() {
+			if now.Sub(lastWarhammerCheck) < 6*time.Hour {
+				warhammer <- franchiseNews{}
+				return
+			}
+			items, checked := collectWarhammerNews(ctx, now)
+			warhammer <- franchiseNews{items, checked}
+		}()
 		scanWorkshopNews := now.Sub(lastWorkshopNewsCheck) >= 6*time.Hour
 		subscribedWorkshop := workshopSources(c.Workshop)
 		go func() {
@@ -452,8 +466,13 @@ func (a *app) checkNow() {
 		}
 		workshopRanks := <-ranks
 		all = append(<-workshopNews, all...)
+		franchise := <-warhammer
+		all = append(all, franchise.items...)
 		a.mu.Lock()
 		a.state.WorkshopRanks = workshopRanks
+		if franchise.checked {
+			a.state.WarhammerChecked = now
+		}
 		if scanWorkshopNews && len(workshopRanks) > 0 && ctx.Err() == nil {
 			a.state.WorkshopNewsChecked = now
 		}

@@ -72,6 +72,7 @@ type Item struct {
 	ParentGame           string               `json:"parent_game,omitempty"`
 	WorkshopChangelog    string               `json:"workshop_changelog,omitempty"`
 	WorkshopSources      []workshopSourceLink `json:"workshop_sources,omitempty"`
+	SourceImage          string               `json:"source_image,omitempty"`
 	EditorialOverride    string               `json:"editorial_override,omitempty"`
 	EditorialBucket      string               `json:"editorial_bucket,omitempty"`
 	EventKind            string               `json:"event_kind,omitempty"`
@@ -125,6 +126,7 @@ type saved struct {
 	RadarError          string                  `json:"radar_error,omitempty"`
 	WorkshopRanks       map[int]workshopRanking `json:"workshop_ranks,omitempty"`
 	WorkshopNewsChecked time.Time               `json:"workshop_news_checked,omitempty"`
+	WarhammerChecked    time.Time               `json:"warhammer_checked,omitempty"`
 	StrategyRanks       strategyRanking         `json:"strategy_ranks,omitempty"`
 	AwardCatalog        []CatalogAward          `json:"award_catalog,omitempty"`
 	LastCheck           time.Time               `json:"last_check"`

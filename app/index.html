@@ -396,13 +396,33 @@ if(it.ai_options){
 const note=elem('p','muted small',it.rewrite_status?.startsWith('error:')?it.rewrite_status:it.rewrite_status==='done'?'ИИ-черновик подготовлен. Не одобрен автоматически.':'');edit.append(note);
 const verify=elem('label');const chk=document.createElement('input');chk.id='verified';chk.type='checkbox';chk.checked=it.verified;chk.disabled=draft.disabled;chk.onchange=()=>{dirty=true};verify.append(chk,document.createTextNode('Я проверил первоисточник, даты, содержание и права на изображения'));edit.append(verify);
 const ctrl=elem('div','controls');const save=elem('button','','Сохранить');save.onclick=()=>saveNews(it.state);save.disabled=draft.disabled;const approve=elem('button','primary','✓ Одобрить');approve.onclick=()=>saveNews('approved');approve.disabled=draft.disabled;const reject=elem('button','danger','Отклонить');reject.onclick=()=>saveNews('rejected');reject.disabled=draft.disabled;ctrl.append(save,approve,reject);edit.append(ctrl);box.append(edit);
-const imgs=elem('div','card');imgs.append(elem('h2','','Официальные изображения ('+(it.images||[]).length+'/7)'));imgs.append(elem('p','muted small','Сначала ищем официальные изображения самой новости, DLC или мода. Общая обложка игры используется только как запасной вариант и помечается. Оцени фактическую связь изображения с темой перед одобрением.'));
+const imgs=elem('div','card');imgs.append(elem('h2','','Изображения ('+(it.images||[]).length+'/7)'));imgs.append(elem('p','muted small','Для DLC используются материалы дополнения и его анонса. Проверь соответствие темы, автора и права перед одобрением.'));
 const mediaState=elem('p',it.media_status==='ready'?'good':'muted small',it.media_status==='working'?'Автоматический подбор выполняется…':it.media_status==='ready'?'Изображения готовы к проверке':it.media_error||'Подбор ещё не завершён');imgs.append(mediaState);
 if(it.media_focus)imgs.append(elem('p','muted small',it.media_focus));
 const pick=elem('button','','Подобрать тематические изображения');pick.disabled=draft.disabled || it.media_status==='working';pick.onclick=()=>autoImages(false);imgs.append(pick);
 const rebuild=elem('button','','Пересобрать галерею под тему');rebuild.disabled=draft.disabled||it.media_status==='working';rebuild.title='Заменит выбранные фото новым тематическим подбором. Старые файлы останутся на диске. Публикация не выполняется.';rebuild.onclick=()=>autoImages(true);imgs.append(rebuild);
 const heroFind=elem('button','','Найти официальный баннер → первым');heroFind.disabled=draft.disabled||it.media_status==='working';heroFind.title='Пробует Steam Library Art и официальный Header; если галерея полная, исключает последнее фото, но не удаляет файл';heroFind.onclick=()=>promoteHero();imgs.append(heroFind);
 const awards=elem('button','primary','🏅 Награды на обложке');awards.disabled=draft.disabled||!(it.images||[]).length;awards.onclick=()=>openAwardsEditor();imgs.append(awards);
+const external=elem('div','controls');
+for(const [kind,text,searchText,searchBase] of [
+ ['official','Добавить из анонса','Искать анонс разработчика','https://www.google.com/search?q='],
+ ['community','Добавить из сообщества','Искать на Reddit','https://www.reddit.com/search/?q=']
+]){
+ const add=elem('button','',text);add.disabled=!['new','rejected'].includes(it.state);
+ add.onclick=async()=>{
+  if(dirty){notify('Сначала сохрани правки текста.',true);return}
+  const url=prompt('Вставь HTTPS-ссылку на публикацию или изображение JPG/PNG',kind==='official'&&it.source_image?it.source_image:'');
+  if(!url?.trim())return;
+  add.disabled=true;
+  try{await api('external-image','POST',{id:it.id,url:url.trim(),kind});notify('Иллюстрация добавлена. Проверь источник и права.');lastEditorSig='';await loadState()}
+  catch(error){notify(error.message,true)}
+  finally{add.disabled=false}
+ };
+ const search=elem('a','source-link small',searchText);
+ search.href=searchBase+encodeURIComponent(it.game+' '+it.title+(kind==='official'?' official announcement':''));
+ search.target='_blank';search.rel='noopener noreferrer';external.append(add,search);
+}
+imgs.append(external);
 const gallery=elem('div','photo-grid');(it.images||[]).forEach((path,index)=>{const frame=elem('div','photo'+(index===0?' hero':''));
 if(index===0)frame.append(elem('span','hero-label','ОБЛОЖКА'));
 if(!draft.disabled){frame.draggable=true;frame.ondragstart=e=>{e.dataTransfer.setData('text/plain',String(index));};frame.ondragover=e=>e.preventDefault();frame.ondrop=e=>{e.preventDefault();const from=Number(e.dataTransfer.getData('text/plain'));if(Number.isInteger(from))moveImage(from,index)};}const img=document.createElement('img');img.alt='Изображение '+(index+1);
@@ -420,7 +440,7 @@ img.src=previewURL;
 }catch(e){if(objectURL&&previewObjectURLs.delete(objectURL))URL.revokeObjectURL(objectURL);img.style.display='none';showPreviewError(frame,'Ошибка превью: '+(e?.message||'неизвестно'))}
 })();frame.append(img);
 const label=it.media_labels?.[index]||'Не классифицировано';const labelText=elem('div','media-origin small',label);frame.append(labelText);
-const src=it.media_sources?.[index];if(src){const cap=elem('a','source-link small','Оригинал Steam');cap.href=src;cap.target='_blank';cap.rel='noopener noreferrer';frame.append(cap)}
+const src=it.media_sources?.[index];if(src){const cap=elem('a','source-link small','Источник изображения');cap.href=src;cap.target='_blank';cap.rel='noopener noreferrer';frame.append(cap)}
 if(!draft.disabled){const remove=elem('button','remove-image', '×');remove.title='Удалить';remove.onclick=()=>removeImage(index);frame.append(remove);
 const acts=elem('div','photo-actions');
 if(index>0){const hero=elem('button','','★ Главная');hero.title='Поставить первой';hero.onclick=()=>moveImage(index,0);acts.append(hero);const back=elem('button','','←');back.title='Переместить левее';back.onclick=()=>moveImage(index,index-1);acts.append(back)}

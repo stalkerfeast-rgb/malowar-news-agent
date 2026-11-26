@@ -128,29 +128,57 @@ func referencedDLCIDs(contents string) []int {
 
 // Verify that a store link is an actual DLC of the parent game. A link or
 // keyword alone is not evidence of a DLC relationship.
-func isRelatedDLC(ctx context.Context, id, base int) bool {
-	if id == base || id <= 0 {
-		return false
-	}
+type steamDLC struct {
+	Type        string `json:"type"`
+	Name        string `json:"name"`
+	Short       string `json:"short_description"`
+	Description string `json:"detailed_description"`
+	FullGame    struct {
+		AppID int `json:"appid"`
+	} `json:"fullgame"`
+}
+
+func readSteamDLC(ctx context.Context, id int) (steamDLC, bool) {
 	uri := fmt.Sprintf("https://store.steampowered.com/api/appdetails?appids=%d&l=english&cc=us", id)
 	b, e := get(ctx, uri, nil)
 	if e != nil {
-		return false
+		return steamDLC{}, false
 	}
 	var data map[string]struct {
-		Success bool `json:"success"`
-		Data    struct {
-			Type     string `json:"type"`
-			FullGame struct {
-				AppID int `json:"appid"`
-			} `json:"fullgame"`
-		} `json:"data"`
+		Success bool     `json:"success"`
+		Data    steamDLC `json:"data"`
 	}
 	if json.Unmarshal(b, &data) != nil {
-		return false
+		return steamDLC{}, false
 	}
 	entry, ok := data[strconv.Itoa(id)]
-	return ok && entry.Success && entry.Data.Type == "dlc" && entry.Data.FullGame.AppID == base
+	return entry.Data, ok && entry.Success && entry.Data.Type == "dlc"
+}
+
+func isDLCNews(item Item) bool {
+	return dlcTextRE.MatchString(item.Title) || strings.EqualFold(item.Category, "DLC") || item.EventKind == "dlc"
+}
+
+func resolveNewsDLC(ctx context.Context, item Item, base int, article string) (int, steamDLC, bool) {
+	type candidate struct {
+		id   int
+		card steamDLC
+	}
+	var related []candidate
+	for _, id := range referencedDLCIDs(item.URL + " " + article) {
+		card, ok := readSteamDLC(ctx, id)
+		if !ok || (id != base && card.FullGame.AppID != base) {
+			continue
+		}
+		if id == base || strings.Contains(strings.ToLower(item.Title), strings.ToLower(card.Name)) && card.Name != "" {
+			return id, card, true
+		}
+		related = append(related, candidate{id, card})
+	}
+	if len(related) == 1 {
+		return related[0].id, related[0].card, true
+	}
+	return 0, steamDLC{}, false
 }
 
 func makeMediaChoices(urls []string, label string) []MediaChoice {
@@ -218,31 +246,33 @@ func (a *app) mediaPlan(ctx context.Context, item Item) ([]MediaChoice, string, 
 		cancel()
 	}
 	fromArticle := makeMediaChoices(officialImagesFromNews(article), "Из объявления Steam (проверь тему)")
-	isDLC := dlcTextRE.MatchString(item.Title) || strings.EqualFold(item.Category, "DLC")
-	dlcPics := []MediaChoice{}
-	if isDLC && len(article) > 0 {
+	isDLC := isDLCNews(item)
+	if isDLC {
+		focus = "DLC: изображения страницы дополнения и его анонса"
 		dlcContext, stop := context.WithTimeout(ctx, 12*time.Second)
-		defer stop()
-		for _, id := range referencedDLCIDs(article) {
-			if dlcContext.Err() != nil {
-				break
-			}
-			nc, cancel := context.WithTimeout(dlcContext, 6*time.Second)
-			verified := isRelatedDLC(nc, id, base)
-			cancel()
-			if !verified {
-				continue
-			}
-			urls, err := collectSteamImages(ctx, id)
-			if err == nil {
-				dlcPics = makeMediaChoices(urls, "Страница DLC (проверена связь с игрой)")
-				break
+		id, _, found := resolveNewsDLC(dlcContext, item, base, article)
+		stop()
+		var dlcPics []MediaChoice
+		if found {
+			if urls, err := collectSteamImages(ctx, id); err == nil {
+				dlcPics = makeMediaChoices(urls, "Страница DLC")
 			}
 		}
-	}
-	if isDLC {
-		focus = "DLC: сначала официальный DLC или изображения анонса; общая игра только fallback"
-		all = append(all, dlcPics, fromArticle)
+		basePath := "/apps/" + strconv.Itoa(base) + "/"
+		if !found || id != base {
+			themed := fromArticle[:0]
+			for _, candidate := range fromArticle {
+				if !strings.Contains(strings.ToLower(candidate.URL), basePath) {
+					themed = append(themed, candidate)
+				}
+			}
+			fromArticle = themed
+		}
+		choices := mergeMediaChoices(dlcPics, fromArticle)
+		if len(choices) > 0 {
+			return choices, focus, nil
+		}
+		return nil, focus, fmt.Errorf("Изображения DLC не найдены. Можно добавить иллюстрацию из анонса вручную")
 	} else if item.Source == "Steam News" {
 		all = append(all, fromArticle)
 	}
@@ -256,7 +286,7 @@ func (a *app) mediaPlan(ctx context.Context, item Item) ([]MediaChoice, string, 
 	}
 	out := mergeMediaChoices(all...)
 	if len(out) > 0 {
-		if len(fromArticle) == 0 && len(dlcPics) == 0 && !isRelease {
+		if len(fromArticle) == 0 && !isRelease {
 			focus = "Тематические изображения не подтверждены; показан fallback базовой игры"
 		}
 		return out, focus, nil

@@ -498,6 +498,27 @@ func (a *app) serve() error {
 				return
 			}
 			a.handleUpload(w, r)
+		case "/api/external-image":
+			if r.Method != "POST" {
+				failure(w, 405, "Метод не разрешён")
+				return
+			}
+			var p struct {
+				ID   string `json:"id"`
+				URL  string `json:"url"`
+				Kind string `json:"kind"`
+			}
+			if decode(r, &p) != nil || p.ID == "" || len(p.URL) > 2048 {
+				failure(w, 400, "Проверь ссылку и карточку")
+				return
+			}
+			ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+			defer cancel()
+			if err := a.attachExternalMedia(ctx, p.ID, p.URL, p.Kind); err != nil {
+				failure(w, 409, err.Error())
+				return
+			}
+			jsonResponse(w, 200, map[string]bool{"ok": true})
 		case "/api/hero-image":
 			if r.Method != "POST" {
 				failure(w, 405, "Метод не разрешён")

@@ -75,8 +75,10 @@ func TestVerifiedDLCBeforeBase(t *testing.T) {
 	if !strings.Contains(choices[0].URL, "/5000/library_hero") || !strings.Contains(choices[0].Label, "DLC") {
 		t.Fatalf("DLC not first: %+v", choices)
 	}
-	if !strings.Contains(choices[len(choices)-1].Label, "Fallback") {
-		t.Fatalf("unmarked base image: %+v", choices)
+	for _, choice := range choices {
+		if strings.Contains(choice.URL, "/394360/") || strings.Contains(choice.Label, "Fallback") {
+			t.Fatalf("base game image used for DLC: %+v", choice)
+		}
 	}
 }
 
@@ -94,11 +96,8 @@ func TestNoFakeRelatedDLC(t *testing.T) {
 	})}
 	a := &app{state: saved{Config: defaultConfig()}}
 	choices, focus, err := a.mediaPlan(context.Background(), Item{ID: "steam:394360:dlc", Source: "Steam News", Title: "New DLC"})
-	if err != nil || len(choices) == 0 {
-		t.Fatal(err)
-	}
-	if !strings.Contains(choices[0].Label, "Fallback") || !strings.Contains(focus, "Тематические изображения не подтверждены") {
-		t.Fatalf("unrelated DLC incorrectly used: %v %s", choices, focus)
+	if err == nil || len(choices) != 0 || !strings.Contains(focus, "DLC") {
+		t.Fatalf("unrelated DLC or base image incorrectly used: %v %s %v", choices, focus, err)
 	}
 }
 

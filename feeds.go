@@ -307,7 +307,12 @@ func (a *app) checkNow() {
 		go func() { strategies <- refreshStrategyRanking(ctx, previousStrategyRanks, time.Now().UTC()) }()
 		all := []Item{}
 		errs := []string{}
-		for _, s := range c.Steam {
+		explicit := map[int]bool{}
+		for _, s := range append(append([]SteamSource(nil), c.Steam...), priorityReleaseGames...) {
+			if explicit[s.AppID] {
+				continue
+			}
+			explicit[s.AppID] = true
 			it, e := fetchSteam(ctx, s)
 			if e != nil {
 				errs = append(errs, "Steam "+s.Name+": "+e.Error())
@@ -317,10 +322,6 @@ func (a *app) checkNow() {
 		}
 		// Hybrids explicitly approved in Interest Score become real monitored
 		// Steam News sources too; candidates not approved never do.
-		explicit := map[int]bool{}
-		for _, src := range c.Steam {
-			explicit[src.AppID] = true
-		}
 		strategyRanks := <-strategies
 		steamNews := make([][]Item, len(strategyRanks.Games))
 		boundedSteamWork(len(strategyRanks.Games), func(i int) {

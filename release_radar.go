@@ -15,7 +15,7 @@ import (
 )
 
 // ReleaseGame stores a verified Steam store snapshot, not an AI prediction.
-// Unknown or approximate dates never trigger countdowns or release posts.
+// Unknown or approximate dates never trigger countdowns or claims that a game has shipped.
 type ReleaseGame struct {
 	AppID                int       `json:"app_id"`
 	Name                 string    `json:"name"`
@@ -44,6 +44,24 @@ type ReleaseGame struct {
 	InterestScore        *int      `json:"interest_score,omitempty"`
 	ScoreCoverage        int       `json:"score_coverage,omitempty"`
 	AwardSuggestions     []string  `json:"award_suggestions,omitempty"`
+	PriorityWatch        bool      `json:"priority_watch,omitempty"`
+	UpcomingEligible     bool      `json:"upcoming_eligible,omitempty"`
+}
+
+var priorityReleaseGames = []SteamSource{
+	{4199910, "Total War: WARHAMMER 40,000"},
+	{2272360, "Warhammer 40,000: Dawn of War IV"},
+}
+
+func isPriorityRelease(id int, c Config) bool {
+	for _, sources := range [][]SteamSource{priorityReleaseGames, c.ReleaseWatch} {
+		for _, source := range sources {
+			if source.AppID == id {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 var ruMentionRE = regexp.MustCompile(`(?i)(?:^|[^a-zа-я])(?:russian|русский)(?:$|[^a-zа-я])`)
@@ -131,14 +149,17 @@ func parseSteamGame(id int, raw []byte, now time.Time) (ReleaseGame, error) {
 	}
 	genreNames := []string{}
 	early := false
+	casual := false
 	for _, gr := range x.Data.Genres {
 		genreNames = append(genreNames, gr.Description)
 		s := strings.ToLower(gr.Description)
+		casual = casual || s == "casual" || s == "казуальные игры"
 		if strings.Contains(s, "early access") || strings.Contains(s, "ранний доступ") {
 			early = true
 		}
 	}
-	status, evidence := strategyEligibility(genreNames, x.Data.ShortDescription+" "+x.Data.DetailedDescription)
+	fullDescription := x.Data.ShortDescription + " " + x.Data.DetailedDescription
+	status, evidence := strategyEligibility(genreNames, fullDescription)
 	if status == "excluded" {
 		return ReleaseGame{}, errors.New("Не подтверждены существенные стратегические элементы")
 	}
@@ -149,6 +170,7 @@ func parseSteamGame(id int, raw []byte, now time.Time) (ReleaseGame, error) {
 		desc = plain(x.Data.DetailedDescription)
 	}
 	g := ReleaseGame{AppID: id, Name: plain(x.Data.Name), URL: fmt.Sprintf("https://store.steampowered.com/app/%d/", id), Description: desc, Date: date, DateText: plain(x.Data.ReleaseDate.Date), ExactDate: exact, ComingSoon: *x.Data.ReleaseDate.ComingSoon, Russian: lang, RussianVoice: voice, EarlyAccess: early, ObservedAt: now.UTC(), GenreStatus: status, GenreEvidence: evidence, DemoAvailable: len(x.Data.Demos) > 0}
+	g.UpcomingEligible = status == "strategy" && (!casual || len(strategyMechanics(fullDescription)) > 0)
 	if exact && !g.ComingSoon {
 		days, _ := daysUntilMSK(date, now)
 		g.Released = days <= 0
@@ -208,7 +230,7 @@ func discoverUpcoming(ctx context.Context) ([]SteamSource, error) {
 func discoverPopularUpcoming(ctx context.Context) ([]SteamSource, map[int]int) {
 	out := []SteamSource{}
 	ranks := map[int]int{}
-	q := url.Values{"start": {"0"}, "count": {"100"}, "sort_by": {"PopularWishlisted"}, "filter": {"comingsoon"}, "infinite": {"1"}}
+	q := url.Values{"start": {"0"}, "count": {"100"}, "sort_by": {"PopularWishlisted"}, "filter": {"comingsoon"}, "infinite": {"1"}, "tags": {"9"}, "category1": {"998"}}
 	raw, err := get(ctx, "https://store.steampowered.com/search/results/?"+q.Encode(), nil)
 	if err != nil {
 		return out, ranks
@@ -249,14 +271,17 @@ func mergeCandidateSources(c Config, discovered []SteamSource) []SteamSource {
 	for _, x := range c.ReleaseWatch {
 		appendUnique(x)
 	}
-	for _, x := range c.Steam {
+	for _, x := range priorityReleaseGames {
 		appendUnique(x)
 	}
 	for _, x := range discovered {
 		appendUnique(x)
 	}
-	if len(out) > 100 {
-		out = out[:100]
+	for _, x := range c.Steam {
+		appendUnique(x)
+	}
+	if len(out) > 205 {
+		out = out[:205]
 	}
 	return out
 }
@@ -270,7 +295,8 @@ func (a *app) radarAllLocked() []ReleaseGame {
 	result := []ReleaseGame{}
 	now := time.Now()
 	for _, game := range a.state.Radar {
-		if !a.state.Config.ReleaseIndie && (game.Editorial == "indie" || game.Editorial == "candidate") {
+		game.PriorityWatch = isPriorityRelease(game.AppID, a.state.Config)
+		if !game.PriorityWatch && !a.state.Config.ReleaseIndie && (game.Editorial == "indie" || game.Editorial == "candidate") {
 			continue
 		}
 		if game.ComingSoon || (game.Released && game.ExactDate && func() bool { d, e := daysUntilMSK(game.Date, now); return e == nil && d >= -2 && d <= 0 }()) {
@@ -409,11 +435,13 @@ func releasePostAt(g ReleaseGame, preview bool, now time.Time) Item {
 	dateLine := ""
 	if g.ExactDate {
 		dateLine = "Дата в Steam: " + g.DateText + "."
+	} else if preview {
+		dateLine = "Точная дата выхода пока не объявлена."
 	}
 	lines := []string{title, "", description, "", dateLine, languageLabel(g), "", "#Стратегии #Steam #MalowarGaming #НовостиИгр"}
 	draft := ensureGameHashtags(strings.TrimSpace(strings.Join(lines, "\n")), "Релизы", name)
 	id := uid("release-radar", strconv.Itoa(g.AppID), g.Date, typ)
-	it := Item{ID: id, Source: "Steam Release Radar", Game: name, Title: title, URL: g.URL, Time: time.Now().UTC(), Excerpt: description + "\n" + languageLabel(g) + "\n" + dateLine, Category: "Релизы", State: "new", Draft: draft, Comment: "Источник: " + g.URL, Verified: false, Priority: 75, EventKind: "release"}
+	it := Item{ID: id, Source: "Steam Release Radar", Game: name, Title: title, URL: g.URL, Time: now.UTC(), Excerpt: description + "\n" + languageLabel(g) + "\n" + dateLine, Category: "Релизы", State: "new", Draft: draft, Comment: "Источник: " + g.URL, Verified: false, Priority: 75, EventKind: "release"}
 	if preview {
 		it.Category = "Анонс"
 		it.EventKind = "news"
@@ -423,6 +451,39 @@ func releasePostAt(g ReleaseGame, preview bool, now time.Time) Item {
 		it.EventKind = "early_access"
 	}
 	return it
+}
+
+func (a *app) prepareUpcomingDraft(id int, now time.Time) (string, error) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	for _, game := range a.state.Radar {
+		if game.AppID != id {
+			continue
+		}
+		if !game.ComingSoon || game.Released || (game.GenreStatus != "strategy" && game.GenreStatus != "hybrid") {
+			break
+		}
+		if game.ExactDate {
+			if days, err := daysUntilMSK(game.Date, now); err != nil || days < 0 {
+				return "", errors.New("Дата Steam уже прошла. Сначала обнови радар")
+			}
+		}
+		item := releasePostAt(game, true, now)
+		if existing := a.getItemLocked(item.ID); existing != nil {
+			return existing.ID, nil
+		}
+		a.state.Items = append(a.state.Items, &item)
+		if err := a.persistLocked(); err != nil {
+			a.state.Items = a.state.Items[:len(a.state.Items)-1]
+			return "", fmt.Errorf("Не удалось сохранить черновик: %w", err)
+		}
+		config := a.state.Config
+		if config.AutoImages || config.AutoRewrite {
+			go a.prepareReleaseDrafts([]string{item.ID}, config)
+		}
+		return item.ID, nil
+	}
+	return "", errors.New("Игра не подтверждена как будущая стратегия Steam")
 }
 func releaseDue(g ReleaseGame, now time.Time, lead int) (preview, day bool) {
 	if !g.ExactDate {
@@ -496,6 +557,7 @@ func (a *app) scanReleases(c Config) {
 	for i := range found {
 		g := &found[i]
 		g.Editorial = releaseEditorial(*g, c)
+		g.PriorityWatch = isPriorityRelease(g.AppID, c)
 		if g.GenreStatus == "review" {
 			for _, approvedID := range c.HybridApproved {
 				if approvedID == g.AppID {
@@ -516,7 +578,7 @@ func (a *app) scanReleases(c Config) {
 			if prior.Date == g.Date && g.Date != "" {
 				g.PreviewCreated = prior.PreviewCreated
 				g.ReleaseCreated = prior.ReleaseCreated
-			} else if prior.ExactDate && prior.Date != g.Date {
+			} else if prior.Date != g.Date {
 				// A postponed date invalidates previous approval and cancels a scheduled release.
 				for _, previewPost := range []bool{true, false} {
 					oldItem := releasePost(prior, previewPost)
@@ -534,11 +596,14 @@ func (a *app) scanReleases(c Config) {
 			}
 		}
 		preview, day := releaseDue(*g, now, c.ReleaseLeadDays)
-		if g.GenreStatus == "review" {
+		if g.PriorityWatch && g.ComingSoon && !g.ExactDate {
+			preview = true
+		}
+		if g.GenreStatus != "strategy" && g.GenreStatus != "hybrid" {
 			preview, day = false, false
 		}
 		// Store-readiness does not equal approval to publish. The user always reviews the post.
-		if preview && c.ReleasePreviews && !g.PreviewCreated {
+		if preview && c.ReleasePreviews && !g.PreviewCreated && (g.PriorityWatch || (g.PopularityRank > 0 && (g.UpcomingEligible || g.GenreStatus == "hybrid"))) {
 			it := releasePostAt(*g, true, now)
 			if a.getItemLocked(it.ID) == nil {
 				a.state.Items = append(a.state.Items, &it)

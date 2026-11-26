@@ -22,7 +22,7 @@
 #vkDashboardBtn{border-color:#517188}#vkDashboardBtn.alert{border-color:#cd8177;color:#f8b4ab}
 </style></head><body>
 <header><div class="brand"><img class="mark" src="/assets/mascot.png" alt="Маскот Malowar Gaming"><div><h1>MALOWAR NEWS AGENT</h1><small>Редакционный центр стратегий · Версия 1.3.19 · Malowar Interest Score</small></div></div><div class="actions"><span class="status" id="stateText">Подключение...</span><button id="localAIButton" title="Разрешить локальную модель только на время создания поста">ИИ: выключен</button><button id="checkBtn">↻ Проверить сейчас</button><button id="vkDashboardBtn" title="Показать одобренные и подготовленные для VK посты">VK Publisher</button><button id="vkBrowserBtn" class="primary" title="Открыть официальное сообщество в отдельном окне Edge">Открыть VK</button><button id="calendarBtn">▦ Календарь</button><button id="statsBtn">◫ Отчёты</button><button id="notifyBtn">♧ Уведомления</button><button id="updatesBtn" title="Проверить обновления программы">↥ Обновления</button><button id="settingsBtn">⚙ Настройки</button><button id="exitBtn" title="Остановить агент">Выход</button></div></header>
-<div class="layout"><aside><div class="aside-label">Редакция</div><button class="nav" data-filter="radar">◉ Радар интереса · топ-15</button><button class="nav active" data-filter="all">Основная лента</button><button class="nav" data-filter="new">Новые</button><button class="nav" data-filter="approved">Одобренные</button><button class="nav" data-filter="scheduled">План публикаций</button><button class="nav" data-filter="browser">Подготовка для VK</button><button class="nav" data-filter="missed">Пропущенные</button><button class="nav" data-filter="published">Опубликованные</button><button class="nav" data-filter="rejected">Отклонённые</button><div class="aside-label">Игровые направления</div><button class="nav" data-filter="section:paradox">♜ Paradox</button><button class="nav" data-filter="section:major">⚔ Крупные стратегии</button><button class="nav" data-filter="type:mod">◈ Модификации</button><button class="nav" data-filter="section:indie">✦ Инди-радар</button><button class="nav" data-filter="featured-mods">★ Крупные моды</button><button class="nav" data-filter="workshop-top">Топ‑30 Workshop</button><div class="aside-label">События</div><button class="nav" data-filter="type:release">Релизы и ранний доступ</button><button class="nav" data-filter="type:dlc">DLC</button><button class="nav" data-filter="type:update">Обновления</button><div class="aside-label">Разведка</div><button class="nav" data-filter="section:candidate">◎ Инди-кандидаты</button></aside>
+<div class="layout"><aside><div class="aside-label">Редакция</div><button class="nav" data-filter="radar">◉ Радар интереса · топ-15</button><button class="nav" data-filter="upcoming">Будущие релизы Steam</button><button class="nav active" data-filter="all">Основная лента</button><button class="nav" data-filter="new">Новые</button><button class="nav" data-filter="approved">Одобренные</button><button class="nav" data-filter="scheduled">План публикаций</button><button class="nav" data-filter="browser">Подготовка для VK</button><button class="nav" data-filter="missed">Пропущенные</button><button class="nav" data-filter="published">Опубликованные</button><button class="nav" data-filter="rejected">Отклонённые</button><div class="aside-label">Игровые направления</div><button class="nav" data-filter="section:paradox">♜ Paradox</button><button class="nav" data-filter="warhammer">Warhammer</button><button class="nav" data-filter="section:major">⚔ Крупные стратегии</button><button class="nav" data-filter="type:mod">◈ Модификации</button><button class="nav" data-filter="section:indie">✦ Инди-радар</button><button class="nav" data-filter="featured-mods">★ Крупные моды</button><button class="nav" data-filter="workshop-top">Топ‑30 Workshop</button><div class="aside-label">События</div><button class="nav" data-filter="type:release">Релизы и ранний доступ</button><button class="nav" data-filter="type:dlc">DLC</button><button class="nav" data-filter="type:update">Обновления</button><div class="aside-label">Разведка</div><button class="nav" data-filter="section:candidate">◎ Инди-кандидаты</button></aside>
 <section class="feed"><div class="feed-top"><h2>Лента <span class="muted small" id="count"></span></h2><div class="feed-controls"><input type="text" id="search" placeholder="Поиск по играм и новостям"><select id="kindFilter" title="Дополнительный фильтр по типу события"><option value="all">Все события</option><option value="release">Релиз</option><option value="early_access">Ранний доступ</option><option value="dlc">DLC</option><option value="update">Патчи</option><option value="mod">Моды</option><option value="news">Анонсы</option></select><select id="sort"><option value="newest">Сначала новые</option><option value="oldest">Сначала старые</option><option value="priority">По важности</option></select></div></div><div class="feed-scroll" id="feedItems"><div class="empty">Загружаем новости...</div></div></section>
 <section class="editor" id="editor"><div class="empty"><h2>Редакционная панель</h2><p>Выбери новость слева, проверь первоисточник и подготовь публикацию.</p></div></section></div>
 <div class="overlay" id="settingsOverlay"><div class="modal"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Источники и публикации</h2><button id="closeSettings">Закрыть</button></div><p class="muted small">Одна строка = один источник. Можно добавить свои игры и моды. Для проверки выбери «Проверить сейчас».</p>
@@ -111,7 +111,7 @@ function prettyTime(d){try{return new Date(d).toLocaleString('ru-RU',{day:'2-dig
 function isDiscoveryFeed(){return filter==='all'||filter==='new'||filter.startsWith('type:')}
 function hasPlannedTime(item){return !!item.scheduled_at&&!item.scheduled_at.startsWith('0001')}
 function isPlanned(item){return hasPlannedTime(item)&&['approved','scheduled','vk_browser_marked','vk_postponed'].includes(item.state)}
-function listItems(){if(!s)return [];let items=(s.items||[]).filter(x=>!isDiscoveryFeed()||x.editorial_bucket!=='candidate').filter(x=>filter==='all'||(filter==='featured-mods'&&!!x.workshop_changelog)||(filter==='scheduled'?isPlanned(x):x.state===filter)||(filter==='browser'&&(['approved','vk_pending','vk_pending_error','vk_browser_marked','scheduled','missed'].includes(x.state)||!!x.vk_browser_prepared_at))||(filter.startsWith('section:')&&x.editorial_bucket===filter.slice(8))||(filter.startsWith('type:')&&(x.event_kind===filter.slice(5)||(filter==='type:release'&&x.event_kind==='early_access'))));const kind=el('kindFilter').value;if(kind!=='all')items=items.filter(x=>x.event_kind===kind);let q=search.toLowerCase().trim();if(q)items=items.filter(x=>(x.title+' '+x.game+' '+(x.parent_game||'')+' '+x.source).toLowerCase().includes(q));return items.sort((a,b)=>el('sort').value==='priority'?(b.priority||0)-(a.priority||0):el('sort').value==='oldest'?new Date(a.time)-new Date(b.time):new Date(b.time)-new Date(a.time))}
+function listItems(){if(!s)return [];let items=(s.items||[]).filter(x=>!isDiscoveryFeed()||x.editorial_bucket!=='candidate').filter(x=>filter==='all'||(filter==='warhammer'&&isWarhammer(x))||(filter==='featured-mods'&&!!x.workshop_changelog)||(filter==='scheduled'?isPlanned(x):x.state===filter)||(filter==='browser'&&(['approved','vk_pending','vk_pending_error','vk_browser_marked','scheduled','missed'].includes(x.state)||!!x.vk_browser_prepared_at))||(filter.startsWith('section:')&&x.editorial_bucket===filter.slice(8))||(filter.startsWith('type:')&&(x.event_kind===filter.slice(5)||(filter==='type:release'&&x.event_kind==='early_access'))));const kind=el('kindFilter').value;if(kind!=='all')items=items.filter(x=>x.event_kind===kind);let q=search.toLowerCase().trim();if(q)items=items.filter(x=>(x.title+' '+x.game+' '+(x.parent_game||'')+' '+x.source).toLowerCase().includes(q));return items.sort((a,b)=>el('sort').value==='priority'?(b.priority||0)-(a.priority||0):el('sort').value==='oldest'?new Date(a.time)-new Date(b.time):new Date(b.time)-new Date(a.time))}
 
 let radarView='interest';
 function renderRadar(){
@@ -216,7 +216,82 @@ function renderStrategyRanking(box){
  if(ranking.length)details.append(list);
  box.append(details);
 }
-function renderFeed(){if(filter==='radar'){renderRadar();return}if(filter==='workshop-top'){renderWorkshopTop();return}const items=listItems(),box=el('feedItems');const selected=current();
+function isWarhammer(item){
+ return [item.game,item.parent_game].some(name=>name&&/warhammer|вархаммер|dawn of war/i.test(name));
+}
+let upcomingMode='30';
+function upcomingDays(date,now=Date.now()){
+ if(!date)return Infinity;
+ const today=new Date(now+10800000).toISOString().slice(0,10);
+ const parse=value=>Date.parse(value+'T00:00:00Z');
+ return (parse(date)-parse(today))/86400000;
+}
+function upcomingCandidates(games,days,now=Date.now()){
+ return games.filter(g=>g.coming_soon&&!g.released&&['strategy','hybrid'].includes(g.genre_status))
+  .filter(g=>!g.exact_date||upcomingDays(g.date,now)>=0)
+  .filter(g=>g.priority_watch||g.popularity_rank>0)
+  .filter(g=>g.priority_watch||g.upcoming_eligible||g.genre_status==='hybrid')
+  .filter(g=>g.priority_watch||(days==='undated'?!g.exact_date:g.exact_date&&upcomingDays(g.date,now)>=0&&upcomingDays(g.date,now)<=Number(days)))
+  .sort((a,b)=>Number(b.priority_watch||false)-Number(a.priority_watch||false)||(a.popularity_rank||9999)-(b.popularity_rank||9999)||upcomingDays(a.date,now)-upcomingDays(b.date,now)||a.name.localeCompare(b.name,'ru'))
+  .slice(0,100);
+}
+function renderUpcoming(){
+ const box=el('feedItems');box.replaceChildren();
+ const toolbar=elem('div','card');
+ const modes=elem('div','controls');
+ for(const [id,label] of [['7','7 дней'],['30','30 дней'],['90','90 дней'],['undated','Без даты'],['drafts','Черновики']]){
+  const button=elem('button',upcomingMode===id?'primary':'',label);
+  button.onclick=()=>{upcomingMode=id;renderUpcoming()};modes.append(button);
+ }
+ toolbar.append(modes);
+ const refresh=elem('button','','Обновить Steam');
+ refresh.disabled=!!s?.radar_busy;
+ refresh.onclick=async()=>{try{await api('radar-scan','POST',{});await loadState()}catch(error){notify(error.message,true)}};
+ toolbar.append(refresh);
+ if(s?.radar_error)toolbar.append(elem('p','notice',s.radar_error));
+ else if(s?.radar_busy)toolbar.append(elem('p','muted small','Проверяю будущие релизы…'));
+ box.append(toolbar);
+ const items=(s?.items||[]).filter(item=>item.source==='Steam Release Radar'&&!['published','rejected'].includes(item.state));
+ const byID=new Map(items.map(item=>[item.id,item]));
+ const addOpen=(row,item)=>{
+  const open=elem('button','','Открыть черновик');open.onclick=()=>choose(item.id);row.append(open);
+ };
+ if(upcomingMode==='drafts'){
+  el('count').textContent='('+items.length+')';
+  if(!items.length)box.append(elem('p','muted','Черновиков релизов пока нет.'));
+  for(const item of items){
+   const row=elem('div','card');
+   row.append(elem('h3','',item.title),elem('p','muted small',item.error||stateNames[item.state]||item.state));
+   addOpen(row,item);box.append(row);
+  }
+  return;
+ }
+ const games=upcomingCandidates(s?.radar_all||[],upcomingMode);
+ el('count').textContent='('+games.length+')';
+ if(!games.length)box.append(elem('p','muted','Пока нет подтверждённых стратегий за этот период.'));
+ for(const game of games){
+  const card=elem('div','card');card.append(elem('h3','',game.name));
+  const date=game.exact_date?game.date_text:'Точная дата не объявлена';
+  const rank=game.priority_watch?'Приоритет':game.popularity_rank?'Место в подборке Steam: '+game.popularity_rank:'';
+  card.append(elem('p','muted small',[date,rank,game.demo_available?'Есть демо':''].filter(Boolean).join(' · ')));
+  const controls=elem('div','controls');
+  const link=elem('a','source-link','Открыть Steam');link.href=game.url;link.target='_blank';link.rel='noopener noreferrer';controls.append(link);
+  const draft=byID.get('release-radar:'+game.app_id+':'+(game.date||'')+':анонс');
+  if(draft)addOpen(controls,draft);
+  else {
+   const prepare=elem('button','','Подготовить черновик');
+   prepare.onclick=async()=>{
+    prepare.disabled=true;
+    try{const result=await api('release-preview','POST',{app_id:game.app_id});await loadState();choose(result.id)}
+    catch(error){notify(error.message,true)}
+    finally{prepare.disabled=false}
+   };
+   controls.append(prepare);
+  }
+  card.append(controls);box.append(card);
+ }
+}
+function renderFeed(){if(filter==='radar'){renderRadar();return}if(filter==='workshop-top'){renderWorkshopTop();return}if(filter==='upcoming'){renderUpcoming();return}const items=listItems(),box=el('feedItems');const selected=current();
 if(!dirty&&(!selected||(isDiscoveryFeed()&&selected.editorial_bucket==='candidate')||(filter==='section:candidate'&&selected.editorial_bucket!=='candidate'))){
  const nextID=items[0]?.id??null;
  if(currentID!==nextID){currentID=nextID;lastEditorSig='';editorRender()}

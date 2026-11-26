@@ -179,6 +179,24 @@ func (a *app) serve() error {
 				return
 			}
 			jsonResponse(w, 202, map[string]bool{"started": true})
+		case "/api/release-preview":
+			if r.Method != "POST" {
+				failure(w, 405, "Метод не разрешён")
+				return
+			}
+			var p struct {
+				AppID int `json:"app_id"`
+			}
+			if err := decode(r, &p); err != nil || p.AppID <= 0 {
+				failure(w, 400, "Неверный AppID")
+				return
+			}
+			id, err := a.prepareUpcomingDraft(p.AppID, time.Now())
+			if err != nil {
+				failure(w, 409, err.Error())
+				return
+			}
+			jsonResponse(w, 200, map[string]string{"id": id})
 		case "/api/check":
 			if r.Method != "POST" {
 				failure(w, 405, "Метод не разрешён")

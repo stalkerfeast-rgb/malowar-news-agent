@@ -5,12 +5,17 @@ import (
 	"encoding/xml"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
 
 const workshopItemURL = "https://steamcommunity.com/sharedfiles/filedetails/?id="
 const workshopChangesURL = "https://steamcommunity.com/sharedfiles/filedetails/changelog/"
+
+func workshopNewsID(id string, updated int64) string {
+	return uid("workshop", id, strconv.FormatInt(updated, 10))
+}
 
 type workshopSourceLink struct {
 	Label string `json:"label"`

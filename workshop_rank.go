@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -17,6 +18,62 @@ var rankedWorkshopGames = []SteamSource{
 	{281990, "Stellaris"},
 	{529340, "Victoria 3"},
 	{1142710, "Total War: Warhammer III"},
+}
+
+type rankedWorkshopUpdate struct {
+	game string
+	mod  workshopRankItem
+}
+
+// A chart position alone is not a news event. Only seek recent, unseen updates.
+func rankedWorkshopUpdates(ranks map[int]workshopRanking, known, subscribed map[string]bool, now time.Time) []rankedWorkshopUpdate {
+	var updates []rankedWorkshopUpdate
+	cutoff := now.Add(-72 * time.Hour)
+	for _, game := range rankedWorkshopGames {
+		var recent []workshopRankItem
+		seen := map[string]bool{}
+		for _, mod := range ranks[game.AppID].Items {
+			id, err := strconv.ParseUint(mod.ID, 10, 64)
+			updated := time.Unix(mod.Updated, 0)
+			if err != nil || id == 0 || mod.AppID != game.AppID || mod.Type != 0 || seen[mod.ID] ||
+				updated.Before(cutoff) || updated.After(now) || subscribed[mod.ID] ||
+				known[workshopNewsID(mod.ID, mod.Updated)] {
+				continue
+			}
+			seen[mod.ID] = true
+			recent = append(recent, mod)
+		}
+		sort.SliceStable(recent, func(i, j int) bool { return recent[i].Updated > recent[j].Updated })
+		for _, mod := range recent[:min(len(recent), 6)] {
+			updates = append(updates, rankedWorkshopUpdate{game.Name, mod})
+		}
+	}
+	return updates
+}
+
+func collectRankedWorkshopNews(ctx context.Context, updates []rankedWorkshopUpdate) []Item {
+	pending := make([]Item, len(updates))
+	boundedSteamWork(len(updates), func(i int) {
+		update := updates[i]
+		mod := update.mod
+		notes := workshopChangeText(ctx, mod.ID, mod.Updated)
+		if notes == "" {
+			return
+		}
+		pending[i] = Item{
+			ID: workshopNewsID(mod.ID, mod.Updated), Source: "Workshop", Game: plain(mod.Title),
+			Title: plain(mod.Title) + " — обновление мода", URL: workshopItemURL + mod.ID,
+			Time: time.Unix(mod.Updated, 0).UTC(), Excerpt: notes, Category: "Моды", ParentGame: update.game,
+			WorkshopSources: []workshopSourceLink{{"Заметки к обновлению Workshop", workshopChangesURL + mod.ID + "#" + strconv.FormatInt(mod.Updated, 10)}},
+		}
+	})
+	var news []Item
+	for _, item := range pending {
+		if item.ID != "" {
+			news = append(news, item)
+		}
+	}
+	return news
 }
 
 type workshopRankItem struct {
@@ -42,7 +99,7 @@ var workshopSSR = regexp.MustCompile(`(?is)<script\b[^>]*\bid="valve-ssr-data"[^
 func parseWorkshopRanking(body []byte, appID int) []workshopRankItem {
 	if match := workshopSSR.FindSubmatch(body); len(match) == 2 {
 		var page struct {
-			LoaderData []string `json:"loaderData"`
+			LoaderData    []string `json:"loaderData"`
 			RenderContext struct {
 				QueryData string `json:"queryData"`
 			} `json:"renderContext"`

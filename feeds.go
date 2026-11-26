@@ -125,7 +125,7 @@ func fetchWorkshop(ctx context.Context, s WorkshopSource) ([]Item, error) {
 	if game == "" {
 		game = d.Title
 	}
-	it := Item{ID: uid("workshop", s.FileID, strconv.FormatInt(d.Updated, 10)), Source: "Workshop", Game: game, Title: d.Title + " — обновление мода", URL: workshopItemURL + s.FileID, Time: time.Unix(d.Updated, 0).UTC(), Excerpt: plain(d.Description), Category: "Моды", ParentGame: s.ParentGame}
+	it := Item{ID: workshopNewsID(s.FileID, d.Updated), Source: "Workshop", Game: game, Title: d.Title + " — обновление мода", URL: workshopItemURL + s.FileID, Time: time.Unix(d.Updated, 0).UTC(), Excerpt: plain(d.Description), Category: "Моды", ParentGame: s.ParentGame}
 	return []Item{it}, nil
 }
 func fetchGitHub(ctx context.Context, repo string) ([]Item, error) {
@@ -272,6 +272,13 @@ func (a *app) checkNow() {
 	a.checking = true
 	c := a.state.Config
 	previousWorkshopRanks := a.state.WorkshopRanks
+	lastWorkshopNewsCheck := a.state.WorkshopNewsChecked
+	knownWorkshopNews := map[string]bool{}
+	for _, item := range a.state.Items {
+		if item.Source == "Workshop" {
+			knownWorkshopNews[item.ID] = true
+		}
+	}
 	previousStrategyRanks := a.state.StrategyRanks
 	a.mu.Unlock()
 	go func() {
@@ -279,7 +286,23 @@ func (a *app) checkNow() {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 		defer cancel()
 		ranks := make(chan map[int]workshopRanking, 1)
-		go func() { ranks <- scanWorkshopRankings(ctx, previousWorkshopRanks, time.Now().UTC()) }()
+		workshopNews := make(chan []Item, 1)
+		now := time.Now().UTC()
+		scanWorkshopNews := now.Sub(lastWorkshopNewsCheck) >= 6*time.Hour
+		subscribedWorkshop := workshopSources(c.Workshop)
+		go func() {
+			ranking := scanWorkshopRankings(ctx, previousWorkshopRanks, now)
+			ranks <- ranking
+			if !scanWorkshopNews || len(ranking) == 0 {
+				workshopNews <- nil
+				return
+			}
+			subscribed := make(map[string]bool, len(subscribedWorkshop))
+			for _, source := range subscribedWorkshop {
+				subscribed[source.FileID] = true
+			}
+			workshopNews <- collectRankedWorkshopNews(ctx, rankedWorkshopUpdates(ranking, knownWorkshopNews, subscribed, now))
+		}()
 		strategies := make(chan strategyRanking, 1)
 		go func() { strategies <- refreshStrategyRanking(ctx, previousStrategyRanks, time.Now().UTC()) }()
 		all := []Item{}
@@ -333,7 +356,7 @@ func (a *app) checkNow() {
 				all = append(all, news...)
 			}
 		}
-		for _, s := range workshopSources(c.Workshop) {
+		for _, s := range subscribedWorkshop {
 			it, e := fetchWorkshop(ctx, s)
 			if e != nil {
 				errs = append(errs, "Workshop "+s.FileID+": "+e.Error())
@@ -427,8 +450,12 @@ func (a *app) checkNow() {
 			}
 		}
 		workshopRanks := <-ranks
+		all = append(<-workshopNews, all...)
 		a.mu.Lock()
 		a.state.WorkshopRanks = workshopRanks
+		if scanWorkshopNews && len(workshopRanks) > 0 && ctx.Err() == nil {
+			a.state.WorkshopNewsChecked = now
+		}
 		a.state.StrategyRanks = strategyRanks
 		known := map[string]bool{}
 		fingerprints := map[string]bool{}

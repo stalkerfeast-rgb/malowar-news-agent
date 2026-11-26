@@ -114,20 +114,21 @@ type AuditEvent struct {
 	Details string    `json:"details"`
 }
 type saved struct {
-	Audit         []AuditEvent            `json:"audit"`
-	Version       int                     `json:"version"`
-	Discovered    []SteamSource           `json:"discovered"`
-	ScanCursor    int                     `json:"scan_cursor"`
-	Config        Config                  `json:"config"`
-	Items         []*Item                 `json:"items"`
-	Radar         []ReleaseGame           `json:"radar,omitempty"`
-	RadarChecked  time.Time               `json:"radar_checked,omitempty"`
-	RadarError    string                  `json:"radar_error,omitempty"`
-	WorkshopRanks map[int]workshopRanking `json:"workshop_ranks,omitempty"`
-	StrategyRanks strategyRanking         `json:"strategy_ranks,omitempty"`
-	AwardCatalog  []CatalogAward          `json:"award_catalog,omitempty"`
-	LastCheck     time.Time               `json:"last_check"`
-	LastError     string                  `json:"last_error"`
+	Audit               []AuditEvent            `json:"audit"`
+	Version             int                     `json:"version"`
+	Discovered          []SteamSource           `json:"discovered"`
+	ScanCursor          int                     `json:"scan_cursor"`
+	Config              Config                  `json:"config"`
+	Items               []*Item                 `json:"items"`
+	Radar               []ReleaseGame           `json:"radar,omitempty"`
+	RadarChecked        time.Time               `json:"radar_checked,omitempty"`
+	RadarError          string                  `json:"radar_error,omitempty"`
+	WorkshopRanks       map[int]workshopRanking `json:"workshop_ranks,omitempty"`
+	WorkshopNewsChecked time.Time               `json:"workshop_news_checked,omitempty"`
+	StrategyRanks       strategyRanking         `json:"strategy_ranks,omitempty"`
+	AwardCatalog        []CatalogAward          `json:"award_catalog,omitempty"`
+	LastCheck           time.Time               `json:"last_check"`
+	LastError           string                  `json:"last_error"`
 }
 type app struct {
 	mu         sync.Mutex

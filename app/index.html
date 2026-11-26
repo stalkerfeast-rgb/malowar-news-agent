@@ -361,9 +361,16 @@ const head=elem('div','card');head.append(elem('span','tag '+it.state,stateNames
 if(it.diff_summary)head.append(elem('p','notice',it.diff_summary));if(it.priority>=s.config.urgent_threshold)head.append(elem('p','urgent','Высокий редакционный приоритет: проверь новость вне очереди. Оценка эвристическая.'));box.append(head);
 const edit=elem('div','card');edit.append(elem('h2','','Текст публикации'));edit.append(elem('p','muted small','Пиши живым русским языком без эмодзи. Текст передаётся в браузерный редактор VK без автоматических комментариев. Факты обязательно проверяй вручную.'));
 const draft=elem('textarea');draft.id='draft';draft.value=it.draft||'';draft.disabled=['published','publishing','uncertain','scheduled','vk_browser_marked'].includes(it.state);draft.oninput=()=>{dirty=true};edit.append(draft);
-const rewrite=elem('button','','ИИ: создать 2 варианта поста');rewrite.disabled=draft.disabled||s.ai_busy||s.config.ai_provider==='none'||(s.config.ai_provider==='ollama'&&!s.config.local_ai_enabled);
-rewrite.onclick=async()=>{if(dirty){notify('Сначала сохрани изменения, иначе они пропадут',true);return}if(!confirm('ИИ создаст два новых варианта и заменит текущий черновик коротким. Продолжить?'))return;try{notify('ИИ обрабатывает новость...');await api('rewrite','POST',{id:it.id});notify('Варианты готовы. Выбери короткий или развёрнутый и проверь факты.');lastEditorSig='';await loadState()}catch(e){notify(e.message,true)}};
-edit.append(rewrite);
+const authorNames={news:'Ника · Новости',analysis:'Илья · Разбор',story:'Мира · История',humor:'Лис · Юмор'};
+const authorButtons=elem('div','controls');
+authorButtons.setAttribute('role','group');authorButtons.setAttribute('aria-label','Автор черновика');
+for(const [voice,name] of Object.entries(authorNames)){
+ const rewrite=elem('button',it.ai_options?.voice===voice?'primary':'',name);
+ rewrite.disabled=draft.disabled||it.state==='approved'||s.ai_busy||s.config.ai_provider==='none'||(s.config.ai_provider==='ollama'&&!s.config.local_ai_enabled);
+ rewrite.onclick=async()=>{if(dirty){notify('Сначала сохрани изменения, иначе они пропадут',true);return}if(!confirm('Создать новый черновик выбранным голосом? Он заменит текущий текст.'))return;try{notify('Автор готовит черновик…');await api('rewrite','POST',{id:it.id,voice});notify('Черновик готов. Проверь факты и формулировки.');lastEditorSig='';await loadState()}catch(e){notify(e.message,true)}};
+ authorButtons.append(rewrite);
+}
+edit.append(elem('small','muted','Выбрать автора черновика'),authorButtons);
 if(it.ai_options){
   const panel=elem('div','notice'); panel.style.margin='10px 0';
   panel.append(elem('strong','','Варианты Qwen3: выбери готовый текст для редакции (ни один не проверен автоматически).'));

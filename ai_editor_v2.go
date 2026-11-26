@@ -22,6 +22,7 @@ type AIVariants struct {
 	ShortWarnings    []string `json:"short_warnings,omitempty"`
 	ExpandedWarnings []string `json:"expanded_warnings,omitempty"`
 	Selected         string   `json:"selected"`
+	Voice            string   `json:"voice,omitempty"`
 }
 
 var numericalClaim = regexp.MustCompile(`\b\d+(?:[.,:/-]\d+)*\b`)
@@ -47,7 +48,7 @@ func sourceWarning(original string, generated string) []string {
 	if count < 200 {
 		warnings = append(warnings, fmt.Sprintf("Текст слишком короткий (%d символов): проверь полноту", count))
 	}
-	if count > 1300 {
+	if count > 4000 {
 		warnings = append(warnings, fmt.Sprintf("Текст слишком длинный (%d символов): желательно сократить", count))
 	}
 	if strings.Contains(generated, "http://") || strings.Contains(generated, "https://") {
@@ -59,7 +60,7 @@ func sourceWarning(original string, generated string) []string {
 	return warnings
 }
 
-func createDualEditorial(ctx context.Context, model, game, title, category, excerpt string, published time.Time, examples []string) (AIVariants, error) {
+func createDualEditorial(ctx context.Context, model, game, title, category, excerpt string, published time.Time, examples []string, voiceID string) (AIVariants, error) {
 	input := fmt.Sprintf("Игра: %s\nТип события: %s\nЗаголовок первоисточника: %s\nВремя публикации исходника: %s\nКраткое содержание источника:\n%s", game, category, title, published.UTC().Format(time.RFC3339), excerpt)
 	if len(examples) > 0 {
 		input += "\n\nПримеры стиля (не использовать как источник фактов):\n" + strings.Join(examples, "\n---\n")
@@ -72,7 +73,8 @@ func createDualEditorial(ctx context.Context, model, game, title, category, exce
 СТРУКТУРА: первая строка — ёмкий заголовок с названием игры ОДИН РАЗ; далее абзацы и в конце 3–5 релевантных хештегов. НЕ повторяй название игры в начале первого абзаца, НЕ начинай с «[игра] — это игра/стратегия...», «Разработчики объявили, что ...», «В мире стратегий ...» или с пересказа заголовка. Первый абзац сразу сообщает суть факта и его значение. В последующих абзацах раскрывай конкретные подтверждённые детали: что изменится, какие системы/механики затронуты, что показали авторы, какие сроки или условия названы, чем это полезно игроку. Не включай пустые общие слова, рекламные прилагательные, тавтологии, повтор одной мысли, канцелярит, эмодзи и дежурные вопросы ради заполнения объёма.
 short: обычно 400–650 символов, 2–3 содержательных абзаца. expanded: обычно 700–1100 символов, 3–5 содержательных абзацев с БОЛЬШИМ количеством фактов, а не с повтором short. Стремись к этим объёмам ТОЛЬКО при достаточной информации. Если первоисточник скуден, честно сделай текст короче вместо выдумок; используй статус и важные подробности из источника. Не повторяй один факт ради длины. Для каждого факта нужна опора в исходном тексте. Не публикуй URL, призывы перейти по ссылке и ссылки в посте: они будут в первом комментарии.
 Отвечай строго JSON объектом с полями short и expanded, оба — готовый текст на русском. Без размышлений и Markdown-обёрток.`
-	body, err := json.Marshal(map[string]any{"model": model, "stream": false, "think": false, "keep_alive": 0, "messages": []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": input}}, "format": schema, "options": map[string]any{"temperature": 0.25, "num_ctx": 6144}})
+	system += "\nСледуй избранному автору и новым ориентирам по длине, если они отличаются от общих рекомендаций.\n" + writingVoices[voiceID].Guidance + "\n" + editorialLengths
+	body, err := json.Marshal(map[string]any{"model": model, "stream": false, "think": false, "keep_alive": 0, "messages": []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": input}}, "format": schema, "options": map[string]any{"temperature": 0.35, "num_ctx": 8192, "num_predict": 3600}})
 	if err != nil {
 		return AIVariants{}, err
 	}
@@ -119,6 +121,7 @@ short: обычно 400–650 символов, 2–3 содержательны
 	plan.ShortWarnings = append(sourceWarning(basis, plan.Short), editorialQualityWarnings(game, excerpt, plan.Short, "short")...)
 	plan.ExpandedWarnings = append(sourceWarning(basis, plan.Expanded), editorialQualityWarnings(game, excerpt, plan.Expanded, "expanded")...)
 	plan.Selected = "short"
+	plan.Voice = voiceID
 	return plan, nil
 }
 

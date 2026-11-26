@@ -267,7 +267,8 @@ func (a *app) serve() error {
 				return
 			}
 			var p struct {
-				ID string `json:"id"`
+				ID    string `json:"id"`
+				Voice string `json:"voice"`
 			}
 			if decode(r, &p) != nil {
 				failure(w, 400, "Неверные данные")
@@ -275,7 +276,10 @@ func (a *app) serve() error {
 			}
 			ctx, cancel := context.WithTimeout(r.Context(), 240*time.Second)
 			defer cancel()
-			if err := a.rewriteItem(ctx, p.ID); err != nil {
+			if p.Voice == "" {
+				p.Voice = "news"
+			}
+			if err := a.rewriteItemAs(ctx, p.ID, p.Voice); err != nil {
 				failure(w, 409, err.Error())
 				return
 			}

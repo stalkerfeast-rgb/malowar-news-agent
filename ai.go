@@ -13,6 +13,14 @@ import (
 )
 
 func (a *app) rewriteItem(ctx context.Context, id string) error {
+	return a.rewriteItemAs(ctx, id, "news")
+}
+
+func (a *app) rewriteItemAs(ctx context.Context, id, voiceID string) error {
+	voice, ok := writingVoices[voiceID]
+	if !ok {
+		return errors.New("Неизвестный автор")
+	}
 	a.mu.Lock()
 	if a.aiBusy {
 		a.mu.Unlock()
@@ -52,6 +60,13 @@ func (a *app) rewriteItem(ctx context.Context, id string) error {
 		if e.ID == id || !e.Verified || (e.State != "approved" && e.State != "scheduled" && e.State != "published") {
 			continue
 		}
+		if e.AIOptions != nil && e.AIOptions.Voice != "" {
+			if e.AIOptions.Voice != voiceID {
+				continue
+			}
+		} else if voiceID != "news" {
+			continue
+		}
 		runes := []rune(e.Draft)
 		if len(runes) > 700 {
 			runes = runes[:700]
@@ -75,7 +90,7 @@ func (a *app) rewriteItem(ctx context.Context, id string) error {
 		if _, startErr := ensureOllamaDaemon(ctx); startErr != nil {
 			err = startErr
 		} else {
-			plan, e := createDualEditorial(ctx, model, copyIt.Game, copyIt.Title, copyIt.Category, copyIt.Excerpt, copyIt.Time, examples)
+			plan, e := createDualEditorial(ctx, model, copyIt.Game, copyIt.Title, copyIt.Category, copyIt.Excerpt, copyIt.Time, examples, voiceID)
 			err = e
 			if err == nil {
 				out = plan.Short
@@ -86,6 +101,7 @@ func (a *app) rewriteItem(ctx context.Context, id string) error {
 		_ = unloadOllamaModel(cleanupCtx, model)
 		cleanupCancel()
 	case "openai":
+		systemPrompt += "\nТребования выбранного автора имеют приоритет над общими рекомендациями по композиции и длине.\n" + voice.Guidance + "\n" + editorialLengths
 		reqBody, _ := json.Marshal(map[string]any{"model": model, "temperature": 0.4, "messages": []map[string]string{{"role": "system", "content": systemPrompt}, {"role": "user", "content": prompt}}})
 		out, err = callText(ctx, "https://api.openai.com/v1/chat/completions", reqBody, map[string]string{"Authorization": "Bearer " + key}, false)
 		if err == nil {

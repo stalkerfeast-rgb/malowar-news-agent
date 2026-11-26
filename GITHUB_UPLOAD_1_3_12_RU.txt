@@ -1,0 +1,19 @@
+ЗАГРУЗКА MALOWAR NEWS AGENT 1.3.12 В GITHUB
+
+Прямая ссылка: https://github.com/stalkerfeast-rgb/malowar-news-agent/releases/new
+Список релизов: https://github.com/stalkerfeast-rgb/malowar-news-agent/releases
+
+1. Распаковать Malowar_News_Agent_1_3_12_GitHub_Release.zip.
+2. Перейти по ссылке создания релиза.
+3. Choose a tag: v1.3.12, Target: main (если GitHub попросит).
+4. Release title: Malowar News Agent 1.3.12 — Отложенные посты VK и контроль публикации
+5. В описание вставить RELEASE_NOTES_1_3_12_RU.txt.
+6. В поле Attach binaries ПЕРЕНЕСТИ ФАЙЛЫ ИЗ РАСПАКОВАННОГО ПАКЕТА:
+   Malowar_News_Agent_Update.zip
+   Malowar_News_Agent_Update.zip.sha256
+7. Не ставить Draft и Pre-release. Нажать Publish release.
+8. Проверить https://github.com/stalkerfeast-rgb/malowar-news-agent/releases/tag/v1.3.12
+9. В приложении Настройки → GitHub-репозиторий обновлений: stalkerfeast-rgb/malowar-news-agent. Затем «Обновления».
+
+Важно: внешний GitHub_Release.zip НЕ является самим файлом автообновления. Не путай его с вложенным Malowar_News_Agent_Update.zip.
+Никакие файлы не загружены и релиз не опубликован автоматически.

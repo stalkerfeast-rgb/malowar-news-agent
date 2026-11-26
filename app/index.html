@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Malowar News Agent</title><link rel="icon" type="image/x-icon" href="/favicon.ico">
+<style>
+:root{color-scheme:dark;--bg:#0b1019;--panel:#111a26;--panel2:#172333;--line:#293344;--gold:#d4ae70;--text:#eaf0f8;--muted:#93a2b5;--green:#85ccaa;--red:#e89d98}*{box-sizing:border-box}body{background:var(--bg);color:var(--text);font:14px/1.45 'Segoe UI',Arial,sans-serif;margin:0;min-height:100vh}button,input,textarea,select{font:inherit}button{border:1px solid #3b4657;border-radius:9px;padding:10px 14px;background:#1c2939;color:var(--text);cursor:pointer}button:hover{background:#28394e}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--gold);color:#1a1b1b;border:1px solid #e7c58d;font-weight:700}.primary:hover{background:#f1c987}.danger{color:var(--red)}.good{color:var(--green)}.line{border-top:1px solid var(--line)}.muted{color:var(--muted)}.small{font-size:12px}.tag{font-size:11px;letter-spacing:.2px;border:1px solid #4b5360;padding:3px 8px;border-radius:6px;background:#222d3c}.tag.new{color:var(--gold)}.tag.approved{color:var(--green)}.tag.rejected{color:var(--red)}.tag.scheduled{color:#b5d7ff}.tag.missed{color:#f6b1a6}.tag.published{color:#85bdf0}header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 24px;background:#111a26;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:14px}.mark{width:48px;height:48px;display:block;object-fit:contain;filter:drop-shadow(0 0 6px #df842e33)}.brand h1{font-size:19px;letter-spacing:.6px;margin:0}.brand small{color:var(--muted)}.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.layout{display:grid;grid-template-columns:185px minmax(310px,1fr) minmax(400px,1.06fr);min-height:calc(100vh - 90px)}aside{padding:21px 12px;border-right:1px solid var(--line);background:#0e1622}.aside-label{font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:1px;padding:10px 13px}.nav{display:block;width:100%;text-align:left;background:transparent;border:0;margin:2px 0;padding:11px 13px}.nav.active{background:#283343;color:var(--gold);border-left:3px solid var(--gold)}.notes{padding:16px 12px;border-top:1px solid var(--line);margin-top:20px;color:var(--muted);font-size:12px}.feed{border-right:1px solid var(--line);min-height:400px}.feed-top{padding:18px 18px 12px;border-bottom:1px solid var(--line)}.feed-top h2{font-size:18px;margin:0 0 10px}.feed-controls{display:flex;align-items:center;gap:8px}.feed-controls input{flex:1;min-width:70px}.feed-scroll{overflow-y:auto;max-height:calc(100vh - 198px)}.entry{display:block;width:100%;padding:14px 18px;text-align:left;background:transparent;border:0;border-bottom:1px solid #202b39;border-radius:0}.entry:hover,.entry.selected{background:#182435}.entry.selected{box-shadow:inset 3px 0 var(--gold)}.entry-head{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:11px}.entry h3{font-size:14px;font-weight:650;line-height:1.35;margin:7px 0}.entry p{font-size:12px;color:var(--muted);margin:0}.editor{padding:20px;min-width:0;max-height:calc(100vh - 90px);overflow-y:auto}.editor h2{font-size:19px;margin:0 0 9px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}.editor .card+.card{margin-top:12px}.editor .title{font-size:17px;margin:8px 0}.source-link{color:#95c4f3;overflow-wrap:anywhere}.editor textarea{width:100%;height:260px;min-height:170px;resize:vertical;background:#0d1622;color:var(--text);border:1px solid var(--line);padding:13px;border-radius:9px}.editor textarea:focus,input:focus{outline:1px solid var(--gold)}input[type=text],input[type=number],input[type=password],textarea,select{background:#0e1724;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px}.editor .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.editor label{display:flex;gap:9px;align-items:flex-start;padding:6px 0}.editor input[type=checkbox]{accent-color:var(--gold);margin-top:4px}.photo-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.photo{background:#101b28;border-radius:8px;overflow:hidden;position:relative;aspect-ratio:16/11}.photo img{width:100%;height:100%;object-fit:cover}.photo-error{position:absolute;inset:38px 12px 45px;display:flex;align-items:center;justify-content:center;text-align:center;color:#ffb3ae;background:#1b2430dd;border:1px dashed #a15a60;border-radius:7px;font-size:12px;padding:8px}.photo button.remove-image{position:absolute;top:3px;right:3px;padding:3px 8px;background:#321d24}.photo.hero{outline:2px solid var(--gold);outline-offset:-2px}.photo-actions{position:absolute;left:3px;bottom:3px;display:flex;gap:3px;flex-wrap:wrap}.photo-actions button{padding:3px 6px;font-size:11px;background:#172333ed}.photo .hero-label{position:absolute;top:3px;left:3px;background:#d4ae70;color:#151515;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:bold}.photo[draggable=true]{cursor:grab}.media-origin{position:absolute;right:3px;bottom:32px;font-size:10px;background:#09131edb;color:#f6dfb7;padding:2px 5px;border-radius:5px;max-width:94%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.empty{padding:45px 15px;text-align:center;color:var(--muted)}.error{color:var(--red);white-space:pre-wrap;max-height:160px;overflow:auto}.overlay{position:fixed;inset:0;background:#030811d9;display:none;align-items:center;justify-content:center;z-index:10;padding:20px}.overlay.open{display:flex}.modal{width:min(790px,100%);max-height:92vh;overflow:auto;background:#131f2e;border:1px solid #4d5060;border-radius:16px;box-shadow:0 20px 80px #0008;padding:22px}.modal h2{margin:0 0 6px}.modal label{display:block;color:var(--muted);margin:12px 0 5px}.modal textarea{width:100%;height:86px;resize:vertical;font-family:Consolas,monospace;font-size:12px}.modal input[type=text],.modal input[type=number],.modal input[type=password]{width:100%}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.toggles{display:flex;gap:20px;flex-wrap:wrap;margin:15px 0}.toggles label{margin:0;color:var(--text)}.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}.notice{padding:12px 14px;background:#252c2c;border:1px solid #5d573d;border-radius:9px;color:#e2c38c;font-size:12px}.status{font-size:12px;color:var(--muted)}#toast{position:fixed;bottom:18px;right:18px;z-index:30;max-width:430px;padding:14px 18px;border-radius:10px;border:1px solid #586577;background:#243447;display:none;box-shadow:0 10px 30px #0009}#toast.visible{display:block}.calendar-row{border:1px solid var(--line);border-radius:9px;padding:12px;margin:9px 0;display:flex;align-items:center;gap:12px;justify-content:space-between}.cal-time{font-weight:700;color:var(--gold);min-width:125px}.meter{height:9px;background:#303a4c;border-radius:5px;overflow:hidden;margin:4px 0 10px}.meter>span{display:block;height:100%;background:#cfad6e}.urgent{color:#ffc882;font-weight:700}.editorial-tools{margin-top:12px;padding:12px;border:1px solid #384456;border-radius:9px;background:#101b2b}.editorial-tools strong{color:var(--gold)}.editorial-tools .controls{display:flex;flex-wrap:wrap;gap:8px}.feed-controls select{max-width:170px}@media(max-width:1050px){.layout{grid-template-columns:130px minmax(290px,1fr)}.editor{grid-column:2;max-height:none;border-top:1px solid var(--line)}.feed{border-right:0}.nav{font-size:12px;padding:10px 8px}}@media(max-width:680px){header{padding:12px;align-items:flex-start;flex-direction:column}.layout{display:block}aside{display:flex;gap:4px;overflow:auto;padding:8px}.aside-label,.notes{display:none}.nav{white-space:nowrap;width:auto}.feed-scroll{max-height:340px}.editor{max-height:none;padding:12px}.grid2{grid-template-columns:1fr}}
+
+/* Integrated award composer, shown as a panel inside the main editor. */
+.awards-modal{width:min(1510px,98vw);max-width:1510px;max-height:95vh;overflow-y:auto}
+.awards-workspace{display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);gap:20px;align-items:start}
+.awards-side{display:flex;flex-direction:column;gap:12px;padding:16px;background:#111c2b;border:1px solid #354558;border-radius:12px}
+.awards-side h3{margin:6px 0;font-size:15px}.awards-side label{display:flex;align-items:center;gap:8px}
+.awards-side input[type=range]{width:100%}.awards-stage{min-width:0}
+#awardsCanvas{display:block;width:100%;height:auto;aspect-ratio:16/9;cursor:grab;touch-action:none;background:#172333;border-radius:10px;border:1px solid #61758e}
+#awardsCanvas:active{cursor:grabbing}.awards-footer{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px}
+@media(max-width:900px){.awards-workspace{grid-template-columns:1fr}.awards-modal{max-height:95vh}}
+
+.vk-pipeline{margin:12px 0;padding:14px;background:#0b1b28;border:1px solid #466075;border-radius:10px}
+.vk-pipeline h3{font-size:14px;margin:0 0 7px;color:#d4ae70}
+.vk-stage{display:flex;align-items:flex-start;gap:10px;margin:6px 0;padding:7px 9px;background:#112435;border-radius:7px}
+.vk-stage .vk-mark{font-weight:800;font-size:15px;min-width:22px;color:#e2c38c}
+.vk-stage.done .vk-mark{color:#85ccaa}.vk-stage.problem .vk-mark{color:#e89d98}
+.vk-stage b{display:block;font-size:13px}.vk-stage small{display:block;color:var(--muted);line-height:1.45}
+#vkDashboardBtn{border-color:#517188}#vkDashboardBtn.alert{border-color:#cd8177;color:#f8b4ab}
+</style></head><body>
+<header><div class="brand"><img class="mark" src="/assets/mascot.png" alt="Маскот Malowar Gaming"><div><h1>MALOWAR NEWS AGENT</h1><small>Редакционный центр стратегий · Версия 1.3.19 · Malowar Interest Score</small></div></div><div class="actions"><span class="status" id="stateText">Подключение...</span><button id="localAIButton" title="Разрешить локальную модель только на время создания поста">ИИ: выключен</button><button id="checkBtn">↻ Проверить сейчас</button><button id="vkDashboardBtn" title="Показать одобренные и подготовленные для VK посты">VK Publisher</button><button id="vkBrowserBtn" class="primary" title="Открыть официальное сообщество в отдельном окне Edge">Открыть VK</button><button id="calendarBtn">▦ Календарь</button><button id="statsBtn">◫ Отчёты</button><button id="notifyBtn">♧ Уведомления</button><button id="updatesBtn" title="Проверить обновления программы">↥ Обновления</button><button id="settingsBtn">⚙ Настройки</button><button id="exitBtn" title="Остановить агент">Выход</button></div></header>
+<div class="layout"><aside><div class="aside-label">Редакция</div><button class="nav" data-filter="radar">◉ Радар интереса · топ-15</button><button class="nav" data-filter="upcoming">Будущие релизы Steam</button><button class="nav active" data-filter="all">Основная лента</button><button class="nav" data-filter="new">Новые</button><button class="nav" data-filter="approved">Одобренные</button><button class="nav" data-filter="scheduled">План публикаций</button><button class="nav" data-filter="browser">Подготовка для VK</button><button class="nav" data-filter="missed">Пропущенные</button><button class="nav" data-filter="published">Опубликованные</button><button class="nav" data-filter="rejected">Отклонённые</button><div class="aside-label">Игровые направления</div><button class="nav" data-filter="section:paradox">♜ Paradox</button><button class="nav" data-filter="warhammer">Warhammer</button><button class="nav" data-filter="section:major">⚔ Крупные стратегии</button><button class="nav" data-filter="type:mod">◈ Модификации</button><button class="nav" data-filter="section:indie">✦ Инди-радар</button><button class="nav" data-filter="featured-mods">★ Крупные моды</button><button class="nav" data-filter="workshop-top">Топ‑30 Workshop</button><div class="aside-label">События</div><button class="nav" data-filter="type:release">Релизы и ранний доступ</button><button class="nav" data-filter="type:dlc">DLC</button><button class="nav" data-filter="type:update">Обновления</button><div class="aside-label">Разведка</div><button class="nav" data-filter="section:candidate">◎ Инди-кандидаты</button></aside>
+<section class="feed"><div class="feed-top"><h2>Лента <span class="muted small" id="count"></span></h2><div class="feed-controls"><input type="text" id="search" placeholder="Поиск по играм и новостям"><select id="kindFilter" title="Дополнительный фильтр по типу события"><option value="all">Все события</option><option value="release">Релиз</option><option value="early_access">Ранний доступ</option><option value="dlc">DLC</option><option value="update">Патчи</option><option value="mod">Моды</option><option value="news">Анонсы</option></select><select id="sort"><option value="newest">Сначала новые</option><option value="oldest">Сначала старые</option><option value="priority">По важности</option></select></div></div><div class="feed-scroll" id="feedItems"><div class="empty">Загружаем новости...</div></div></section>
+<section class="editor" id="editor"><div class="empty"><h2>Редакционная панель</h2><p>Выбери новость слева, проверь первоисточник и подготовь публикацию.</p></div></section></div>
+<div class="overlay" id="settingsOverlay"><div class="modal"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Источники и публикации</h2><button id="closeSettings">Закрыть</button></div><p class="muted small">Одна строка = один источник. Можно добавить свои игры и моды. Для проверки выбери «Проверить сейчас».</p>
+<label>Steam News · AppID | Название игры</label><textarea id="steamCfg" placeholder="281990|Stellaris"></textarea>
+<div class="grid2"><div><label>Steam Workshop · ID мода | Название | Игра (третий столбец необязательный)</label><textarea id="workshopCfg" placeholder="123456789|Название мода|Stellaris"></textarea></div><div><label>GitHub Releases · owner/repo</label><textarea id="githubCfg" placeholder="owner/project"></textarea></div></div>
+<div class="grid2"><div><label>Основные серии (по одной в строке)</label><textarea id="coreGamesCfg" placeholder="Total War
+RimWorld
+Civilization"></textarea></div><div><label>Подтверждённые инди-игры (по одной в строке)</label><textarea id="indieGamesCfg" placeholder="Добавляй только проверенные проекты"></textarea></div></div><p class="muted small">Игры Paradox определяются по отдельному справочнику. Всё остальное без подтверждения попадает в «Инди-кандидаты». Категорию каждой новости можно изменить вручную.</p>
+<div class="toggles"><label><input id="discoveryCfg" type="checkbox"> Автопоиск новых стратегий в Steam (релизы и ожидаемые игры)</label></div>
+<div class="notice"><strong>Релизный радар · Steam</strong><p class="small">Отслеживает ближайшие выходы стратегий. Создаёт черновик за 5 дней до точной даты и отдельный черновик, когда Steam подтвердит релиз. Окончательное одобрение и отправка в VK остаются за тобой.</p>
+<div class="grid2"><div><label>Дней до релиза</label><input id="releaseLeadCfg" type="number" min="1" max="30" value="5"></div><div><label>Показывать игр в подборке</label><input id="releaseTopCfg" type="number" min="1" max="30" value="15"></div></div>
+<div class="toggles"><label><input type="checkbox" id="releasePreviewsCfg"> Подготавливать предварительные анонсы</label><label><input type="checkbox" id="releaseDayCfg"> Готовить отдельный пост в день выхода</label><label><input type="checkbox" id="releaseIndieCfg"> Показывать инди-стратегии и кандидатов</label></div>
+<label>Особо отслеживаемые игры · Steam AppID | Название (по одной в строке)</label><textarea id="releaseWatchCfg" placeholder="Например: 281990|Stellaris"></textarea><p class="muted small">Только точные даты из Steam запускают пятидневный отсчёт. Если русский язык не указан, агент пишет «не заявлен», но не делает вид, что перевода точно нет.</p></div><label>Официальные RSS/Atom · Название | https://адрес-ленты</label><textarea id="rssCfg" placeholder="Разработчик | https://example.com/feed.xml"></textarea>
+<div class="grid2"><div><label>Интервал проверки, минут</label><input id="intervalCfg" type="number" min="5" max="1440" value="30"></div><div><label>ID сообщества VK (цифрами, без минуса)</label><input id="groupCfg" type="text" placeholder="Например, 123456789"></div></div><label>Адрес сообщества для браузерной публикации</label><input id="vkCommunityCfg" type="text" placeholder="https://vk.ru/malowargaming"><p class="muted small">Для передачи программы другому редактору укажи адрес его сообщества VK. Токены не нужны.</p>
+<div class="toggles"><label><input id="monitorCfg" type="checkbox" checked> Автоматически проверять новости</label><label><input id="hotfixCfg" type="checkbox"> Пропускать сообщения с Hotfix</label></div>
+<div class="notice"><strong>Режим публикации:</strong> после ручной проверки. Даже с автоматической отправкой агент публикует только те новости, которые ты лично одобрил, отметил как проверенные и снабдил 3–7 изображениями.</div>
+<div class="notice"><strong>VK Publisher:</strong> после одобрения News Agent готовит локальный пакет: текст и 3–7 фото. Открой сообщество в отдельном окне Edge, вставь текст и загрузи фото через официальный редактор VK, затем лично выбери отложенную публикацию. Автоматическая отправка через VK API выключена.</div>
+<p class="muted small">Ни одобрение, ни подготовка пакета не публикуют запись. Первый комментарий с источниками больше не создаётся. Время выбирается вручную в VK.</p>
+<div class="grid2"><div><label>Часы публикаций (Москва, через запятую)</label><input type="text" id="slotsCfg" value="10:00,14:00,18:00,21:00"></div><div><label>Порог срочной новости (50–100)</label><input id="urgentCfg" type="number" min="50" max="100" value="90"></div></div>
+<div class="notice"><strong>Русский ИИ-редактор:</strong> переводит и пересказывает новости. Пишет только по полученному тексту, не подтверждает факты. Нужна своя Ollama или отдельный ключ OpenAI API; подписка ChatGPT не даёт API-доступ автоматически.</div>
+<div class="notice" style="margin:10px 0">При включённом локальном ИИ News Agent запускает Ollama при необходимости. Модель загружается только во время создания поста и выгружается после ответа. Выключение остановит новые задания ИИ и попытается освободить память, но не закроет саму Ollama.</div>
+<div class="toggles"><label><input id="localAIEnabledCfg" type="checkbox"> Разрешить локальный ИИ (Qwen3 14B) для создания постов</label></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button id="checkLocalAI">Проверить Ollama</button><button id="unloadLocalAI">Выгрузить модель сейчас</button></div><p id="localAIStatus" class="muted small">Модель загружается только при генерации.</p>
+<div class="grid2"><div><label>ИИ-провайдер</label><select id="aiProviderCfg" style="width:100%"><option value="none">Выключен</option><option value="ollama">Локальная Ollama (бесплатно)</option><option value="openai">OpenAI API</option></select></div><div><label>Модель ИИ</label><input id="aiModelCfg" type="text" placeholder="qwen3:14b / gpt-4.1-mini"></div></div>
+<div class="toggles"><label><input id="autoImagesCfg" type="checkbox"> Автоматически подбирать изображения Steam и Workshop (до 7 на новость)</label></div>
+<div class="toggles"><label><input id="autoRewriteCfg" type="checkbox"> Автоматически готовить черновики через ИИ (максимум 3 за проверку)</label></div>
+<label>Ключ OpenAI API (только в оперативной памяти, не на диске)</label><div style="display:flex;gap:8px"><input type="password" id="aiToken" style="flex:1" autocomplete="off" placeholder="sk-..."><button id="connectAI">Подключить ИИ</button></div><p class="muted small" id="aiState"></p>
+<label>Канал обновлений программы · GitHub owner/repo (только официальный репозиторий)</label><input id="updateRepoCfg" type="text" placeholder="owner/Malowar-News-Agent"><p class="muted small">Нужен публичный GitHub Releases с Malowar_News_Agent_Update.zip и файлом .zip.sha256. Если канал не задан, обновления не скачиваются.</p>
+<details><summary class="muted small">Ранее использовавшиеся VK API-ключи (для браузерной публикации НЕ НУЖНЫ)</summary><label>Токен VK (шифрование Windows DPAPI; отправка через API отключена)</label><div style="display:flex;gap:8px"><input type="password" id="vkToken" style="flex:1" autocomplete="off" placeholder="Не требуется для VK Publisher"><button id="connectVK">Подключить и сохранить</button><button id="checkVK">Проверить старый доступ</button><button id="clearVK">Забыть токен</button></div></details>
+<p class="muted small" id="tokenState">VK не подключён</p><label>Диагностика источников (ошибки последней проверки)</label><pre id="sourceErrors" style="white-space:pre-wrap;color:var(--red);max-height:130px;overflow:auto"></pre>
+<div class="modal-footer"><button id="saveCfg" class="primary">Сохранить настройки</button></div></div></div>
+<div class="overlay" id="calendarOverlay"><div class="modal"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Календарь публикаций · МСК</h2><button id="closeCalendar">Закрыть</button></div><p class="muted small">Здесь показано время, сохранённое в агенте. Чтобы запланировать запись в VK, подтверди дату и время в редакторе VK.</p><div id="calendarItems"></div></div></div>
+<div class="overlay" id="statsOverlay"><div class="modal"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Отчёт редакции</h2><button id="closeStats">Закрыть</button></div><p class="muted small">Локальная статистика редакции. Счётчики VK подгружаются отдельно при наличии доступа.</p><div id="statsItems"></div></div></div>
+<div class="overlay" id="awardsOverlay"><div class="modal awards-modal">
+ <div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><div><h2>Награды на обложке · Malowar Awards</h2><p class="muted small">Официальная обложка остаётся оригиналом. Перетаскивай утверждённые плашки прямо по картинке.</p></div><button id="awardsClose">Закрыть</button></div>
+ <div class="awards-workspace">
+  <div class="awards-side">
+   <h3>Выбрать достижения</h3>
+   <div id="awardReadyList"></div>
+   <p class="muted small">До трёх на обложку. Три исходных PNG сохраняются без изменений. Остальные награды переходят из очереди в доступные после добавления утверждённого PNG.</p>
+   <details><summary>Очередь новых наград (50 идей)</summary><div id="awardCandidateList" style="max-height:210px;overflow:auto;margin-top:8px"></div></details>
+   <label>Добавить достижение в очередь</label><input id="newAwardName" type="text" maxlength="65" placeholder="Название достижения"><button id="newAwardAdd">Добавить в каталог</button>
+   <h3>Расстановка</h3>
+   <label>Отступ между двумя наградами, пиксели</label><input type="range" id="awardsGap" min="8" max="100" step="2" value="26">
+   <button id="awardsAuto">Автоматически выровнять справа</button>
+   <strong id="awardSelected">Выбери награду на обложке</strong>
+   <label>Размер выбранной награды</label><input type="range" id="awardScale" min="20" max="70" value="43">
+   <h3>Обложка и персонаж</h3>
+   <label><input type="checkbox" id="awardMirrorCover"> Отразить всю обложку</label>
+   <label>Персонаж отдельным слоем PNG</label><input id="awardsHeroFile" type="file" accept="image/png">
+   <label><input type="checkbox" id="awardMirrorHero"> Отразить только персонажа</label>
+   <label>Размер персонажа</label><input type="range" id="heroScale" min="12" max="85" value="42">
+   <button id="awardsRemoveHero">Убрать отдельный слой персонажа</button>
+   <p class="muted small" id="awardsHeroStatus"></p>
+  </div>
+  <div class="awards-stage"><canvas id="awardsCanvas" width="1280" height="720"></canvas><p class="muted small" id="awardsWarning">Обложка загружается…</p>
+   <p class="muted small">Совет: для обложки с уже вписанным текстом отражай не всю картинку, а отдельно вырезанного персонажа PNG, иначе надписи станут зеркальными.</p>
+  </div>
+ </div>
+ <div class="awards-footer"><button id="awardsReset" class="danger">Вернуть исходную обложку</button><button id="awardsSave" class="primary">Сохранить награды в карточке новости</button></div>
+</div></div>
+<div class="overlay" id="vkPublisherOverlay"><div class="modal" style="max-width:910px">
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2>VK Publisher · Malowar Gaming</h2><button id="closeVKPublisher">Закрыть</button></div>
+ <p class="notice">Текст и фотографии подготовлены <strong>локально</strong>. Автоперенос экспериментальный и может потребовать открыть редактор и кнопку «Фото» в VK. Пока ты не сохранил запись на сайте VK, публикации нет. Авторизация в отдельном окне Edge сохраняется в профиле Windows.</p>
+ <p class="muted small" id="vkPublisherInfo"></p>
+ <textarea id="vkPublisherText" readonly style="width:100%;height:190px;background:#0d1622;color:#eaf0f8;border:1px solid #3b4657;border-radius:9px;padding:12px"></textarea>
+ <div class="controls" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px"><button id="vkCopyText" class="primary">Резерв: копировать текст</button><button id="vkOpenPhotos">Резерв: папка с фото</button><button id="vkOpenCommunity">Открыть VK</button><button id="vkOneClick" class="primary" title="Открывает редактор сообщества и передаёт текст с фотографиями; публикацию подтверждаешь ты">Открыть запись и заполнить</button><button id="vkAutoFill" title="Экспериментально: требуется проверка с текущим редактором VK">Перенести текст и фото (бета 2)</button></div>
+ <p class="muted small">Основная кнопка «Открыть запись и заполнить» сама пытается открыть редактор и перенести материалы. Если VK изменил интерфейс, используй проверенную кнопку «Перенести текст и фото», предварительно открыв создание записи вручную. Дату и окончательную публикацию подтверждаешь ты.</p>
+ <div class="modal-footer"><button id="vkMarkManual" class="primary">Я сохранил запись в отложке VK</button></div>
+ <p class="muted small">Эта отметка ручная, не является подтверждением VK API. Если сомневаешься, сначала проверь отложенные записи сообщества.</p>
+</div></div>
+<div id="toast"></div>
+<script>
+const KEY='__APP_SECRET__'; let s=null,currentID=null,filter='all',dirty=false,search='',refreshing=false,lastEditorSig='';
+window.addEventListener('beforeunload',event=>{if(dirty)event.preventDefault()});
+const el=id=>document.getElementById(id);
+const previewObjectURLs=new Set();
+function disposePreviewURLs(){for(const url of previewObjectURLs){URL.revokeObjectURL(url)}previewObjectURLs.clear()}
+function showPreviewError(frame,msg){if(!frame.isConnected)return;const p=elem('span','photo-error',msg);frame.append(p)}
+function notify(msg,error=false){const t=el('toast');t.textContent=msg;t.style.borderColor=error?'#ca7777':'#71654d';t.classList.add('visible');setTimeout(()=>t.classList.remove('visible'),5000)}
+async function api(path,method='GET',data=null){const opts={method,headers:{'X-MNA-Key':KEY}};if(data instanceof FormData){opts.body=data}else if(data!==null){opts.body=JSON.stringify(data);opts.headers['Content-Type']='application/json'}const r=await fetch('/api/'+path,opts);let j;try{j=await r.json()}catch{throw Error('Неверный ответ программы')}if(!r.ok)throw Error(j.error||('HTTP '+r.status));return j}
+const sectionNames={paradox:'Paradox',major:'Крупные стратегии',indie:'Инди',candidate:'Инди-кандидат',other:'Другое'};
+const kindNames={news:'Анонс / новость',release:'Релиз',early_access:'Ранний доступ',dlc:'DLC',update:'Обновление',mod:'Модификация'};
+const stateNames={vk_browser_marked:'Отмечено вручную: запись в VK',new:'Новая',approved:'Одобрена (локально)',scheduled:'Локальное расписание',missed:'Пропущена',rejected:'Отклонена',published:'Опубликована в VK',publishing:'Отправка поста',uncertain:'Неясно: проверь VK',vk_pending:'Локальная очередь (ещё не в VK)',vk_pending_error:'Ошибка отправки в VK',vk_sending:'Отправляется в VK',vk_postponed:'В отложке VK (ID получен)'};
+function prettyTime(d){try{return new Date(d).toLocaleString('ru-RU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}catch{return ''}}
+function isDiscoveryFeed(){return filter==='all'||filter==='new'||filter.startsWith('type:')}
+function hasPlannedTime(item){return !!item.scheduled_at&&!item.scheduled_at.startsWith('0001')}
+function isPlanned(item){return hasPlannedTime(item)&&['approved','scheduled','vk_browser_marked','vk_postponed'].includes(item.state)}
+function listItems(){if(!s)return [];let items=(s.items||[]).filter(x=>!isDiscoveryFeed()||x.editorial_bucket!=='candidate').filter(x=>filter==='all'||(filter==='warhammer'&&isWarhammer(x)&&(warhammerMode==='all'||warhammerGroup(x)===warhammerMode))||(filter==='featured-mods'&&!!x.workshop_changelog)||(filter==='scheduled'?isPlanned(x):x.state===filter)||(filter==='browser'&&(['approved','vk_pending','vk_pending_error','vk_browser_marked','scheduled','missed'].includes(x.state)||!!x.vk_browser_prepared_at))||(filter.startsWith('section:')&&x.editorial_bucket===filter.slice(8))||(filter.startsWith('type:')&&(x.event_kind===filter.slice(5)||(filter==='type:release'&&x.event_kind==='early_access'))));const kind=el('kindFilter').value;if(kind!=='all')items=items.filter(x=>x.event_kind===kind);let q=search.toLowerCase().trim();if(q)items=items.filter(x=>(x.title+' '+x.game+' '+(x.parent_game||'')+' '+x.source).toLowerCase().includes(q));return items.sort((a,b)=>el('sort').value==='priority'?(b.priority||0)-(a.priority||0):el('sort').value==='oldest'?new Date(a.time)-new Date(b.time):new Date(b.time)-new Date(a.time))}
+
+let radarView='interest';
+function renderRadar(){
+ const all=[...(s?.radar_all||s?.radar||[])],box=el('feedItems');box.replaceChildren();
+ const head=elem('div','card');head.append(elem('h3','','Malowar Interest Score · Steam'));
+ head.append(elem('p','muted small','Стратегия или подтверждённый гибрид обязателен. Вес: популярность 35%, изменение интереса 30%, русский язык 25%, дата выхода и демо 10%. Сортировка — инструмент отбора, а не оценка качества.'));
+ head.append(elem('p','muted small','Популярность: место в публичной выдаче Steam Popular Wishlisted. Динамика: изменение МЕСТА между проверками, не процент роста вишлистов. Неизвестные показатели не считаются нулями.'));
+ const modes=elem('div','controls');
+ for(const [id,label] of [['interest','Общий рейтинг'],['popular','Популярные'],['growth','Рост интереса'],['soon','Ближайшие'],['hybrid','Гибриды']]){
+   const b=elem('button',radarView===id?'primary':'',label);b.onclick=()=>{radarView=id;renderRadar()};modes.append(b);
+ }head.append(modes);
+ const refresh=elem('button','','↻ Обновить данные Steam');refresh.disabled=!!s?.radar_busy;refresh.onclick=async()=>{try{await api('radar-scan','POST',{});notify('Проверка Steam запущена');await loadState()}catch(e){notify(e.message,true)}};head.append(refresh);
+ if(s?.radar_checked&&!s.radar_checked.startsWith('0001'))head.append(elem('p','muted small','Последняя проверка: '+prettyTime(s.radar_checked)));
+ if(s?.radar_busy)head.append(elem('p','muted small','Сверяем стратегические механики и результаты Steam…'));
+ if(s?.radar_error)head.append(elem('p','notice','Steam: '+s.radar_error));box.append(head);
+ const presentScore=g=>typeof g.interest_score==='number';
+ const rank=g=>(g.popularity_rank||99999);
+ const date=g=>g.exact_date?new Date(g.date+'T00:00:00+03:00').getTime():Infinity;
+ let data=all;
+ if(radarView==='hybrid')data=data.filter(g=>g.genre_status==='review'||g.genre_status==='hybrid');
+ if(radarView==='growth')data=data.filter(g=>g.momentum_known);
+ if(radarView==='popular')data=data.filter(g=>g.popularity_rank>0);
+ data.sort((a,b)=>{
+   if(radarView==='popular')return rank(a)-rank(b)||a.name.localeCompare(b.name,'ru');
+   if(radarView==='growth')return (b.momentum_rank||0)-(a.momentum_rank||0)||rank(a)-rank(b);
+   if(radarView==='soon')return date(a)-date(b)||rank(a)-rank(b);
+   if(radarView==='hybrid')return Number(a.genre_status==='hybrid')-Number(b.genre_status==='hybrid')||rank(a)-rank(b);
+   return (presentScore(b)?b.interest_score:-1)-(presentScore(a)?a.interest_score:-1)||rank(a)-rank(b);
+ });
+ const max=radarView==='hybrid'?30:(s?.config?.release_top||15);
+ const total=data.length;data=data.slice(0,max);el('count').textContent='('+data.length+' из '+total+')';
+ if(!data.length){box.append(elem('div','empty',radarView==='growth'?'Для динамики нужны минимум две проверки Steam с данными о позициях.':radarView==='hybrid'?'Пока нет гибридов на проверке.':'Пока нет достаточных данных Steam. Запусти проверку или добавь AppID в настройках.'));return}
+ for(const g of data){const card=elem('div','entry');card.style.cursor='default';const line=elem('div','entry-head');line.append(elem('b','',g.name));line.append(elem('span','muted small',g.date_text||(g.coming_soon?'Дата уточняется':'Без подтверждённой даты')));card.append(line);
+ const ru=g.russian==='yes'?'Русский: заявлен':g.russian==='not_listed'?'Русский: не заявлен':'Русский: неизвестно';
+ const genre=g.genre_status==='review'?'Гибрид: нужна проверка':g.genre_status==='hybrid'?'Гибрид: подтверждён':'Стратегия';
+ card.append(elem('p','muted small',ru+' · '+genre+' · '+(g.coming_soon?'Ожидается':g.released?'Вышла':'Статус уточняется')));
+ const score=presentScore(g)?'Interest Score: '+g.interest_score+'/100 (данные '+g.score_coverage+'% весов)':'Interest Score: недостаточно данных';
+ const popularity=g.popularity_rank>0?'Steam Popular Wishlisted: место '+g.popularity_rank+'/'+g.popularity_pool:'Место в Steam: нет подтверждённых данных';
+ const momentum=g.momentum_known?'Изменение позиции: '+(g.momentum_rank>0?'+':'')+g.momentum_rank:'Динамика: нет двух сопоставимых измерений';
+ card.append(elem('p','small',score+' · '+popularity+' · '+momentum));
+ if(g.genre_evidence?.length)card.append(elem('p','muted small','Основание жанра: '+g.genre_evidence.join(', ')));
+ if(g.description)card.append(elem('p','small',g.description.length>245?g.description.slice(0,245)+'…':g.description));
+ for(const idea of g.award_suggestions||[])card.append(elem('p','small','Предложение редактору: '+idea+' (на обложку не добавлено)'));
+ const ctr=elem('div','controls');const link=elem('a','small','Открыть Steam');link.href=g.url;link.target='_blank';link.rel='noopener noreferrer';ctr.append(link);
+ if(g.genre_status==='review'||g.genre_status==='hybrid'){
+   const approve=elem('button',g.genre_status==='review'?'primary':'',g.genre_status==='review'?'Подтвердить стратегические механики':'Снять подтверждение');
+   approve.onclick=async()=>{try{await api('hybrid-approve','POST',{app_id:g.app_id,approved:g.genre_status==='review'});notify('Решение сохранено');await loadState()}catch(e){notify(e.message,true)}};ctr.append(approve);
+ }
+ const matched=(s.items||[]).filter(x=>x.source==='Steam Release Radar'&&x.game===g.name).sort((a,b)=>new Date(b.time)-new Date(a.time));
+ if(matched.length){const btn=elem('button','','Открыть черновик');btn.onclick=()=>{filter=matched[0].editorial_bucket==='candidate'?'section:candidate':'all';for(const n of document.querySelectorAll('.nav'))n.classList.toggle('active',n.dataset.filter===filter);choose(matched[0].id)};ctr.append(btn)}
+ else if(g.genre_status==='review')card.append(elem('p','muted small','Автоматическое создание релизного поста заблокировано до твоего подтверждения гибридного жанра.'));
+ else if(g.exact_date&&g.coming_soon)card.append(elem('p','muted small','Черновик появится за '+(s.config.release_lead_days||5)+' дней до выхода.'));
+ card.append(ctr);box.append(card)}
+}
+let workshopGame='all';
+function renderWorkshopTop(){
+ const box=el('feedItems');box.replaceChildren();
+ const ranks=Object.values(s?.workshop_ranks||{});
+ const newsIDs=new Set((s?.items||[]).filter(item=>item.source==='Workshop').map(item=>item.id));
+ const games=elem('div','controls');
+ for(const [id,label] of [['all','Все игры'],...ranks.map(g=>[String(g.app_id),g.name])]){
+  const button=elem('button',id===workshopGame?'primary':'',label);
+  button.onclick=()=>{workshopGame=id;renderWorkshopTop()};
+  games.append(button);
+ }
+ box.append(games);
+ const selected=ranks.filter(g=>workshopGame==='all'||String(g.app_id)===workshopGame);
+ el('count').textContent='('+selected.reduce((count,g)=>count+g.items.length,0)+')';
+ if(!selected.length)box.append(elem('p','muted','Рейтинг появится после проверки источников Steam.'));
+ for(const game of selected){
+  const section=elem('div','card');
+  section.append(elem('h3','',game.name),elem('p','muted small','Популярное за неделю · проверено '+prettyTime(game.checked)));
+  const list=elem('ol','');
+  for(const mod of game.items){
+   const row=elem('li',''),link=elem('a','source-link',mod.title);
+   link.href='https://steamcommunity.com/sharedfiles/filedetails/?id='+encodeURIComponent(mod.publishedfileid);
+   link.target='_blank';link.rel='noopener noreferrer';
+   row.append(link);
+   if(mod.new_in_top)row.append(elem('span','muted small',' · вошёл в топ'));
+   if(mod.just_updated)row.append(elem('span','muted small',' · обновился'));
+   const newsID='workshop:'+mod.publishedfileid+':'+mod.time_updated;
+   if(newsIDs.has(newsID)){
+    const open=elem('button','','Открыть новость');
+    open.onclick=()=>choose(newsID);
+    row.append(document.createTextNode(' '),open);
+   }
+   list.append(row);
+  }
+  section.append(list);box.append(section);
+ }
+}
+function renderStrategyRanking(box){
+ const ranking=s?.strategy_ranks||[];
+ const details=elem('details','card');
+ details.append(elem('summary','','Игры под наблюдением · '+ranking.length));
+ details.append(elem('p','muted small',ranking.length?'Средний онлайн по замерам Steam за последние 30 дней. При первом замере показан текущий онлайн.':'Рейтинг появится после проверки Steam.'));
+ const list=elem('ol','');
+ for(const game of ranking){
+  const row=elem('li','',game.name+' · '+game.average_players.toLocaleString('ru-RU')+' игроков');
+  list.append(row);
+ }
+ if(ranking.length)details.append(list);
+ box.append(details);
+}
+let warhammerMode='all';
+function warhammerGroup(item){
+ if(item.category==='Книги')return 'books';
+ if(item.category==='Наборы')return 'sets';
+ if(item.event_kind==='mod')return 'mods';
+ return 'games';
+}
+function renderWarhammerModes(box){
+ const modes=elem('div','controls');
+ for(const [id,label] of [['all','Все'],['games','Игры'],['mods','Моды'],['sets','Наборы'],['books','Книги на русском']]){
+  const button=elem('button',warhammerMode===id?'primary':'',label);
+  button.onclick=()=>{warhammerMode=id;renderFeed()};modes.append(button);
+ }
+ box.append(modes);
+}
+function isWarhammer(item){
+ return [item.game,item.parent_game].some(name=>name&&/warhammer|вархаммер|dawn of war/i.test(name));
+}
+let upcomingMode='30';
+function upcomingDays(date,now=Date.now()){
+ if(!date)return Infinity;
+ const today=new Date(now+10800000).toISOString().slice(0,10);
+ const parse=value=>Date.parse(value+'T00:00:00Z');
+ return (parse(date)-parse(today))/86400000;
+}
+function upcomingCandidates(games,days,now=Date.now()){
+ return games.filter(g=>g.coming_soon&&!g.released&&['strategy','hybrid'].includes(g.genre_status))
+  .filter(g=>!g.exact_date||upcomingDays(g.date,now)>=0)
+  .filter(g=>g.priority_watch||g.popularity_rank>0)
+  .filter(g=>g.priority_watch||g.upcoming_eligible||g.genre_status==='hybrid')
+  .filter(g=>g.priority_watch||(days==='undated'?!g.exact_date:g.exact_date&&upcomingDays(g.date,now)>=0&&upcomingDays(g.date,now)<=Number(days)))
+  .sort((a,b)=>Number(b.priority_watch||false)-Number(a.priority_watch||false)||(a.popularity_rank||9999)-(b.popularity_rank||9999)||upcomingDays(a.date,now)-upcomingDays(b.date,now)||a.name.localeCompare(b.name,'ru'))
+  .slice(0,100);
+}
+function renderUpcoming(){
+ const box=el('feedItems');box.replaceChildren();
+ const toolbar=elem('div','card');
+ const modes=elem('div','controls');
+ for(const [id,label] of [['7','7 дней'],['30','30 дней'],['90','90 дней'],['undated','Без даты'],['drafts','Черновики']]){
+  const button=elem('button',upcomingMode===id?'primary':'',label);
+  button.onclick=()=>{upcomingMode=id;renderUpcoming()};modes.append(button);
+ }
+ toolbar.append(modes);
+ const refresh=elem('button','','Обновить Steam');
+ refresh.disabled=!!s?.radar_busy;
+ refresh.onclick=async()=>{try{await api('radar-scan','POST',{});await loadState()}catch(error){notify(error.message,true)}};
+ toolbar.append(refresh);
+ if(s?.radar_error)toolbar.append(elem('p','notice',s.radar_error));
+ else if(s?.radar_busy)toolbar.append(elem('p','muted small','Проверяю будущие релизы…'));
+ box.append(toolbar);
+ const items=(s?.items||[]).filter(item=>item.source==='Steam Release Radar'&&!['published','rejected'].includes(item.state));
+ const byID=new Map(items.map(item=>[item.id,item]));
+ const addOpen=(row,item)=>{
+  const open=elem('button','','Открыть черновик');open.onclick=()=>choose(item.id);row.append(open);
+ };
+ if(upcomingMode==='drafts'){
+  el('count').textContent='('+items.length+')';
+  if(!items.length)box.append(elem('p','muted','Черновиков релизов пока нет.'));
+  for(const item of items){
+   const row=elem('div','card');
+   row.append(elem('h3','',item.title),elem('p','muted small',item.error||stateNames[item.state]||item.state));
+   addOpen(row,item);box.append(row);
+  }
+  return;
+ }
+ const games=upcomingCandidates(s?.radar_all||[],upcomingMode);
+ el('count').textContent='('+games.length+')';
+ if(!games.length)box.append(elem('p','muted','Пока нет подтверждённых стратегий за этот период.'));
+ for(const game of games){
+  const card=elem('div','card');card.append(elem('h3','',game.name));
+  const date=game.exact_date?game.date_text:'Точная дата не объявлена';
+  const rank=game.priority_watch?'Приоритет':game.popularity_rank?'Место в подборке Steam: '+game.popularity_rank:'';
+  card.append(elem('p','muted small',[date,rank,game.demo_available?'Есть демо':''].filter(Boolean).join(' · ')));
+  const controls=elem('div','controls');
+  const link=elem('a','source-link','Открыть Steam');link.href=game.url;link.target='_blank';link.rel='noopener noreferrer';controls.append(link);
+  const draft=byID.get('release-radar:'+game.app_id+':'+(game.date||'')+':анонс');
+  if(draft)addOpen(controls,draft);
+  else {
+   const prepare=elem('button','','Подготовить черновик');
+   prepare.onclick=async()=>{
+    prepare.disabled=true;
+    try{const result=await api('release-preview','POST',{app_id:game.app_id});await loadState();choose(result.id)}
+    catch(error){notify(error.message,true)}
+    finally{prepare.disabled=false}
+   };
+   controls.append(prepare);
+  }
+  card.append(controls);box.append(card);
+ }
+}
+function renderFeed(){if(filter==='radar'){renderRadar();return}if(filter==='workshop-top'){renderWorkshopTop();return}if(filter==='upcoming'){renderUpcoming();return}const items=listItems(),box=el('feedItems');const selected=current();
+if(!dirty&&(!selected||(isDiscoveryFeed()&&selected.editorial_bucket==='candidate')||(filter==='section:candidate'&&selected.editorial_bucket!=='candidate'))){
+ const nextID=items[0]?.id??null;
+ if(currentID!==nextID){currentID=nextID;lastEditorSig='';editorRender()}
+}
+const rankingOpen=box.querySelector('details')?.open;
+box.replaceChildren();if(filter==='warhammer')renderWarhammerModes(box);if(filter==='section:major'){renderStrategyRanking(box);box.querySelector('details').open=!!rankingOpen}el('count').textContent='('+items.length+')';if(!items.length){const d=document.createElement('div');d.className='empty';d.textContent='Пока нет новостей по выбранному фильтру. Нажми «Проверить сейчас» или добавь источники.';box.append(d);return}
+for(const it of items){const card=document.createElement('button');card.className='entry'+(it.id===currentID?' selected':'');const top=document.createElement('div');top.className='entry-head';const a=document.createElement('span');a.textContent=it.game;const date=document.createElement('span');date.textContent=prettyTime(it.time);top.append(a,date);const title=document.createElement('h3');title.textContent=it.title;const row=document.createElement('p');const badge=document.createElement('span');badge.className='tag '+it.state;badge.textContent=stateNames[it.state]||it.state;const cat=document.createElement('span');cat.textContent='  ·  '+(sectionNames[it.editorial_bucket]||'Кандидат')+' · '+(kindNames[it.event_kind]||it.category)+' · '+it.source+' · ★ '+(it.priority||'?')+'/100'+' · Фото '+(it.images||[]).length+'/7'+(it.scheduled_at&&!it.scheduled_at.startsWith('0001')?' · '+prettyMSK(it.scheduled_at):'')+(it.vk_post_id?' · VK #'+it.vk_post_id:'')+(it.priority>=s.config.urgent_threshold?' · СРОЧНО':'');row.append(badge,cat);card.append(top,title,row);card.onclick=()=>choose(it.id);box.append(card)}}
+function current(){return s?.items?.find(x=>x.id===currentID)}
+function elem(tag,cls,text){const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x}
+
+function vkWorkflow(it){
+ const b=elem('div','vk-pipeline');b.append(elem('h3','','Браузерная передача в VK · реальные статусы'));
+ const approved=it.verified&&['approved','scheduled','vk_pending','vk_pending_error','vk_browser_marked'].includes(it.state);
+ const prepared=!!it.vk_browser_prepared_at;
+ const marked=it.state==='vk_browser_marked';
+ const stages=[
+  {done:approved,label:'1. Одобрено редактором',detail:approved?'Проверено, но ещё не отправлено в VK':'Сначала проверь и одобри текст и фотографии'},
+  {done:prepared,label:'2. Материалы экспортированы',detail:prepared?'Текст и фото подготовлены локально. Это НЕ публикация':'Подготовь пакет кнопкой ниже'},
+  {done:marked,label:'3. Отметка после сохранения в VK',detail:marked?'Ты вручную отметил запись. News Agent не проверял VK API':it.vk_post_id>0?'Для этой записи уже был получен post_id VK: '+it.vk_post_id:'Сохрани запись на сайте VK и только потом нажми подтверждение'}
+ ];
+ for(const st of stages){const r=elem('div','vk-stage'+(st.done?' done':''));r.append(elem('span','vk-mark',st.done?'✓':'○'));const x=elem('div','');x.append(elem('b','',st.label),elem('small','',st.detail));r.append(x);b.append(r)}
+ if(it.scheduled_at)b.append(elem('p','muted small','Рекомендованное время: '+prettyMSK(it.scheduled_at)+' (назначается вручную в VK)'));
+ if(it.state==='vk_pending_error')b.append(elem('p','error','Старая ошибка VK API: '+(it.vk_queue_error||'неизвестна')+'. Новые API-отправки отключены.'));
+ if(it.state==='uncertain')b.append(elem('p','error','Неясный результат прежней отправки: сначала проверь VK, чтобы не создать дубль.'));
+ return b;
+}
+function vkDashboard(){const items=s?.items||[];const prepared=items.filter(x=>x.vk_browser_prepared_at&&x.state!=='vk_browser_marked').length;const marked=items.filter(x=>x.state==='vk_browser_marked').length;const btn=el('vkDashboardBtn');btn.textContent='VK: подготовлено '+prepared+' · отмечено '+marked;btn.classList.remove('alert');btn.title='Отметка не означает автоматическую проверку VK';}
+let vkPublisherID=null;
+async function vkBrowserAction(action,id=''){
+ try {return await api('vk-browser','POST',{action,id:id||vkPublisherID||currentID})}
+ catch(e){notify(e.message,true);throw e}
+}
+async function openVKWindow(){try{await vkBrowserAction('open');notify('Открыто отдельное окно VK. Вход сохраняется в профиле Edge.')}catch(e){}}
+function showVKPublisher(it){vkPublisherID=it.id;el('vkPublisherInfo').textContent=it.game+' · '+it.title+(it.scheduled_at?' · Время '+prettyMSK(it.scheduled_at):' · время выбери в VK');el('vkPublisherText').value=it.draft||'';el('vkPublisherOverlay').classList.add('open')}
+async function prepareForVK(it){if(dirty){notify('Сначала сохрани все правки и одобри запись',true);return}
+ try{const info=await vkBrowserAction('prepare',it.id);notify('Подготовлено '+info.images+' фото и текст. VK ещё не получал запись.');await loadState();showVKPublisher(current()||it)}catch(e){}
+}
+async function startVKPost(id){
+ if(dirty){notify('Сначала сохрани правки и одобри запись',true);return}
+ const buttons=[el('vkOneClick')].filter(Boolean);for(const b of buttons)b.disabled=true;
+ try{
+  notify('Открываю редактор VK и передаю материалы…');
+  const r=await vkBrowserAction('start',id);
+  await loadState();
+  const it=current();if(it&&it.id===id)showVKPublisher(it);
+  notify(r.details||'Редактор VK подготовлен. Проверь текст и фотографии.',!r.ok);
+ }catch(e){notify('Если VK не открыл редактор автоматически, создай запись вручную и нажми «Перенести текст и фото».',true)}
+ finally{for(const b of buttons)b.disabled=false}
+}
+function editorRender(){disposePreviewURLs();const box=el('editor');box.replaceChildren();const it=current();if(!it){const e=elem('div','empty');e.append(elem('h2','', 'Редакционная панель'),elem('p','', 'Выбери новость и изучи официальный источник.'));box.append(e);return}
+const head=elem('div','card');head.append(elem('span','tag '+it.state,stateNames[it.state]||it.state),elem('h2','title',it.game+' · '+it.title));head.append(elem('div','muted small',`${it.source} · ${prettyTime(it.time)} · ${it.category} · Важность ${it.priority||'?'} / 100 (редакционный ориентир)`));const link=elem('a','source-link','Открыть первоисточник');link.href=it.url;link.target='_blank';link.rel='noopener noreferrer';head.append(link);if(it.source_image){const image=elem('a','source-link','Иллюстрация источника');image.href=it.source_image;image.target='_blank';image.rel='noopener noreferrer';head.append(image)}if(it.workshop_changelog){const changes=elem('a','source-link','Журнал изменений Workshop');changes.href=it.workshop_changelog;changes.target='_blank';changes.rel='noopener noreferrer';head.append(changes)}for(const source of it.workshop_sources||[]){const extra=elem('a','source-link',source.label);extra.href=source.url;extra.target='_blank';extra.rel='noopener noreferrer';head.append(extra)}const description=elem('p','muted small',it.excerpt||'Описание отсутствует, проверь источник.');head.append(description);const editorial=elem('div','editorial-tools');editorial.append(elem('strong','','Редакционная рубрика'));const editRow=elem('div','controls');const parent=elem('input');parent.type='text';parent.id='parentGameEdit';parent.value=it.parent_game||'';parent.placeholder='Игра для модификации (например, Stellaris)';parent.title='Для Steam Workshop укажи основную игру, чтобы мод попадал и в её ленту';parent.style.flex='1';parent.style.minWidth='180px';const bucket=elem('select');bucket.id='editorialBucketEdit';for(const [code,label] of [['','Определять автоматически'],['paradox','Paradox'],['major','Крупные стратегии'],['indie','Инди'],['candidate','Инди-кандидат'],['other','Другое']]){const option=elem('option','',label);option.value=code;bucket.append(option)}bucket.value=it.editorial_override||'';const saveTag=elem('button','','Сохранить рубрику');saveTag.onclick=async()=>{try{await api('editorial-tag','POST',{id:it.id,bucket:bucket.value,parent_game:parent.value.trim()});notify('Рубрика сохранена. Статус публикации не изменён.');lastEditorSig='';await loadState()}catch(e){notify(e.message,true)}};editRow.append(parent,bucket,saveTag);editorial.append(editRow,elem('p','muted small','Рубрика не влияет на проверку фактов и не одобряет пост автоматически.'));head.append(editorial);
+if(it.diff_summary)head.append(elem('p','notice',it.diff_summary));if(it.priority>=s.config.urgent_threshold)head.append(elem('p','urgent','Высокий редакционный приоритет: проверь новость вне очереди. Оценка эвристическая.'));box.append(head);
+const edit=elem('div','card');edit.append(elem('h2','','Текст публикации'));edit.append(elem('p','muted small','Пиши живым русским языком без эмодзи. Текст передаётся в браузерный редактор VK без автоматических комментариев. Факты обязательно проверяй вручную.'));
+const draft=elem('textarea');draft.id='draft';draft.value=it.draft||'';draft.disabled=['published','publishing','uncertain','scheduled','vk_browser_marked'].includes(it.state);draft.oninput=()=>{dirty=true};edit.append(draft);
+const authorNames={news:'Ника · Новости',analysis:'Илья · Разбор',story:'Мира · История',humor:'Лис · Юмор'};
+const authorButtons=elem('div','controls');
+authorButtons.setAttribute('role','group');authorButtons.setAttribute('aria-label','Автор черновика');
+for(const [voice,name] of Object.entries(authorNames)){
+ const rewrite=elem('button',it.ai_options?.voice===voice?'primary':'',name);
+ rewrite.disabled=draft.disabled||it.state==='approved'||s.ai_busy||s.config.ai_provider==='none'||(s.config.ai_provider==='ollama'&&!s.config.local_ai_enabled);
+ rewrite.onclick=async()=>{if(dirty){notify('Сначала сохрани изменения, иначе они пропадут',true);return}if(!confirm('Создать новый черновик выбранным голосом? Он заменит текущий текст.'))return;try{notify('Автор готовит черновик…');await api('rewrite','POST',{id:it.id,voice});notify('Черновик готов. Проверь факты и формулировки.');lastEditorSig='';await loadState()}catch(e){notify(e.message,true)}};
+ authorButtons.append(rewrite);
+}
+edit.append(elem('small','muted','Выбрать автора черновика'),authorButtons);
+if(it.ai_options){
+  const panel=elem('div','notice'); panel.style.margin='10px 0';
+  panel.append(elem('strong','','Варианты Qwen3: выбери готовый текст для редакции (ни один не проверен автоматически).'));
+  const buttons=elem('div','controls');
+  for (const [value,title,text] of [['short','Короткий',it.ai_options.short],['expanded','Развёрнутый',it.ai_options.expanded]]) {
+    const b=elem('button',it.ai_options.selected===value?'primary':'',title+' · '+[...text].length+' зн.');
+    b.disabled=draft.disabled||s.ai_busy;
+    b.onclick=async()=>{
+      if(dirty){notify('Сохрани текущие ручные правки перед переключением',true);return}
+      if(!confirm('Заменить текст черновика вариантом «'+title+'»?'))return;
+      try{await api('choose-variant','POST',{id:it.id,variant:value});notify('Вариант выбран. Ручная проверка обязательна.');lastEditorSig='';await loadState()}
+      catch(e){notify(e.message,true)}
+    };
+    buttons.append(b);
+  }
+  panel.append(buttons);
+  const warnings=it.ai_options.selected==='expanded'?it.ai_options.expanded_warnings:it.ai_options.short_warnings;
+  const ul=elem('ul','small');
+  for(const warning of (warnings||[])){ul.append(elem('li','',warning))}
+  panel.append(ul);
+  edit.append(panel);
+}
+const note=elem('p','muted small',it.rewrite_status?.startsWith('error:')?it.rewrite_status:it.rewrite_status==='done'?'ИИ-черновик подготовлен. Не одобрен автоматически.':'');edit.append(note);
+const verify=elem('label');const chk=document.createElement('input');chk.id='verified';chk.type='checkbox';chk.checked=it.verified;chk.disabled=draft.disabled;chk.onchange=()=>{dirty=true};verify.append(chk,document.createTextNode('Я проверил первоисточник, даты, содержание и права на изображения'));edit.append(verify);
+const ctrl=elem('div','controls');const save=elem('button','','Сохранить');save.onclick=()=>saveNews(it.state);save.disabled=draft.disabled;const approve=elem('button','primary','✓ Одобрить');approve.onclick=()=>saveNews('approved');approve.disabled=draft.disabled;const reject=elem('button','danger','Отклонить');reject.onclick=()=>saveNews('rejected');reject.disabled=draft.disabled;ctrl.append(save,approve,reject);edit.append(ctrl);box.append(edit);
+const imgs=elem('div','card');imgs.append(elem('h2','','Изображения ('+(it.images||[]).length+'/7)'));imgs.append(elem('p','muted small','Для DLC используются материалы дополнения и его анонса. Проверь соответствие темы, автора и права перед одобрением.'));
+const mediaState=elem('p',it.media_status==='ready'?'good':'muted small',it.media_status==='working'?'Автоматический подбор выполняется…':it.media_status==='ready'?'Изображения готовы к проверке':it.media_error||'Подбор ещё не завершён');imgs.append(mediaState);
+if(it.media_focus)imgs.append(elem('p','muted small',it.media_focus));
+const pick=elem('button','','Подобрать тематические изображения');pick.disabled=draft.disabled || it.media_status==='working';pick.onclick=()=>autoImages(false);imgs.append(pick);
+const rebuild=elem('button','','Пересобрать галерею под тему');rebuild.disabled=draft.disabled||it.media_status==='working';rebuild.title='Заменит выбранные фото новым тематическим подбором. Старые файлы останутся на диске. Публикация не выполняется.';rebuild.onclick=()=>autoImages(true);imgs.append(rebuild);
+const heroFind=elem('button','','Найти официальный баннер → первым');heroFind.disabled=draft.disabled||it.media_status==='working';heroFind.title='Пробует Steam Library Art и официальный Header; если галерея полная, исключает последнее фото, но не удаляет файл';heroFind.onclick=()=>promoteHero();imgs.append(heroFind);
+const awards=elem('button','primary','🏅 Награды на обложке');awards.disabled=draft.disabled||!(it.images||[]).length;awards.onclick=()=>openAwardsEditor();imgs.append(awards);
+const external=elem('div','controls');
+for(const [kind,text,searchText,searchBase] of [
+ ['official','Добавить из анонса','Искать анонс разработчика','https://www.google.com/search?q='],
+ ['community','Добавить из сообщества','Искать на Reddit','https://www.reddit.com/search/?q=']
+]){
+ const add=elem('button','',text);add.disabled=!['new','rejected'].includes(it.state);
+ add.onclick=async()=>{
+  if(dirty){notify('Сначала сохрани правки текста.',true);return}
+  const url=prompt('Вставь HTTPS-ссылку на публикацию или изображение JPG/PNG',kind==='official'&&it.source_image?it.source_image:'');
+  if(!url?.trim())return;
+  add.disabled=true;
+  try{await api('external-image','POST',{id:it.id,url:url.trim(),kind});notify('Иллюстрация добавлена. Проверь источник и права.');lastEditorSig='';await loadState()}
+  catch(error){notify(error.message,true)}
+  finally{add.disabled=false}
+ };
+ const search=elem('a','source-link small',searchText);
+ search.href=searchBase+encodeURIComponent(it.game+' '+it.title+(kind==='official'?' official announcement':''));
+ search.target='_blank';search.rel='noopener noreferrer';external.append(add,search);
+}
+imgs.append(external);
+const gallery=elem('div','photo-grid');(it.images||[]).forEach((path,index)=>{const frame=elem('div','photo'+(index===0?' hero':''));
+if(index===0)frame.append(elem('span','hero-label','ОБЛОЖКА'));
+if(!draft.disabled){frame.draggable=true;frame.ondragstart=e=>{e.dataTransfer.setData('text/plain',String(index));};frame.ondragover=e=>e.preventDefault();frame.ondrop=e=>{e.preventDefault();const from=Number(e.dataTransfer.getData('text/plain'));if(Number.isInteger(from))moveImage(from,index)};}const img=document.createElement('img');img.alt='Изображение '+(index+1);
+(async()=>{let objectURL=null;try{
+const rr=await fetch('/api/media?id='+encodeURIComponent(it.id)+'&index='+index,{headers:{'X-MNA-Key':KEY}});
+if(!rr.ok)throw Error('HTTP '+rr.status);
+const blob=await rr.blob();if(!blob.type.startsWith('image/'))throw Error('Не изображение');
+if(!frame.isConnected)return;
+objectURL=URL.createObjectURL(blob);previewObjectURLs.add(objectURL);
+const previewURL=objectURL;
+function release(){if(previewObjectURLs.delete(previewURL))URL.revokeObjectURL(previewURL)}
+img.onload=()=>{release()};
+img.onerror=()=>{release();img.style.display='none';showPreviewError(frame,'Превью не открылось. Файл сохранён локально.')} ;
+img.src=previewURL;
+}catch(e){if(objectURL&&previewObjectURLs.delete(objectURL))URL.revokeObjectURL(objectURL);img.style.display='none';showPreviewError(frame,'Ошибка превью: '+(e?.message||'неизвестно'))}
+})();frame.append(img);
+const label=it.media_labels?.[index]||'Не классифицировано';const labelText=elem('div','media-origin small',label);frame.append(labelText);
+const src=it.media_sources?.[index];if(src){const cap=elem('a','source-link small','Источник изображения');cap.href=src;cap.target='_blank';cap.rel='noopener noreferrer';frame.append(cap)}
+if(!draft.disabled){const remove=elem('button','remove-image', '×');remove.title='Удалить';remove.onclick=()=>removeImage(index);frame.append(remove);
+const acts=elem('div','photo-actions');
+if(index>0){const hero=elem('button','','★ Главная');hero.title='Поставить первой';hero.onclick=()=>moveImage(index,0);acts.append(hero);const back=elem('button','','←');back.title='Переместить левее';back.onclick=()=>moveImage(index,index-1);acts.append(back)}
+if(index<it.images.length-1){const next=elem('button','','→');next.title='Переместить правее';next.onclick=()=>moveImage(index,index+1);acts.append(next)}
+frame.append(acts)}gallery.append(frame)});imgs.append(gallery);
+const file=document.createElement('input');file.type='file';file.id='imageFiles';file.accept='.jpg,.jpeg,.png';file.multiple=true;file.disabled=draft.disabled;const upload=elem('button','','Добавить изображения');upload.disabled=draft.disabled;upload.onclick=()=>file.click();file.onchange=()=>uploadImages(file.files);imgs.append(upload,file);const compose=elem('button','','Собрать обложку из официальных материалов');compose.disabled=draft.disabled||(it.images||[]).length<2||(it.images||[]).length>=7;compose.title='Использует первые две картинки и название игры; не генерирует новые детали';compose.onclick=()=>composeCover();imgs.append(compose,elem('p','muted small','Перетащи изображения, используй стрелки или нажми ★ Главная. Обложка всегда первое фото. Автокомпозиция использует только уже загруженные изображения; проверь её перед одобрением.'));box.append(imgs);
+const pub=elem('div','card');pub.append(elem('h2','','VK Publisher · официальная отложка'));
+pub.append(elem('p','muted small','News Agent готовит текст и фотографии. Окончательную публикацию в официальном редакторе VK подтверждаешь ты. API-токен не нужен, комментарии не создаются.'));
+pub.append(vkWorkflow(it));
+const canPrepare=['approved','vk_pending','vk_pending_error','scheduled','missed'].includes(it.state)&&!it.vk_post_id;
+if(canPrepare){const start=elem('button','primary','Открыть запись и заполнить VK');start.onclick=()=>startVKPost(it.id);pub.append(start);const prepare=elem('button','','Резерв: подготовить пакет');prepare.onclick=()=>prepareForVK(it);pub.append(prepare)}
+if(it.vk_browser_prepared_at&&it.state!=='vk_browser_marked'){const again=elem('button','','Открыть подготовленный пакет');again.onclick=()=>showVKPublisher(it);pub.append(again)}
+if(it.state==='vk_browser_marked'){pub.append(elem('p','good','Помечено вручную '+prettyMSK(it.vk_browser_marked_at)+'. Факт публикации не проверялся по API.'));const un=elem('button','','Отменить ручную отметку');un.onclick=async()=>{if(!confirm('Снять только отметку News Agent? Это НЕ удалит запись в VK.'))return;try{await vkBrowserAction('unmark',it.id);await loadState()}catch(e){}};pub.append(un)}
+if(['approved','scheduled','missed'].includes(it.state)){const dateRow=elem('div','controls');const next=elem('input');next.type='datetime-local';next.value=it.scheduled_at?mskInput(new Date(it.scheduled_at)):mskInput(new Date(Date.now()+3600000));next.title='Рекомендуемое время МСК (VK не получает его автоматически)';const plan=elem('button','','Запомнить время МСК');plan.onclick=()=>schedule('at',next.value);const slot=elem('button','','Следующий слот');slot.onclick=()=>schedule('queue','');dateRow.append(next,plan,slot);pub.append(dateRow)}
+if(it.vk_browser_prepared_at&&it.scheduled_at)pub.append(elem('p','muted small','Время для ручного выбора в VK: '+prettyMSK(it.scheduled_at)));
+if(it.vk_post_id){pub.append(elem('p','error','Существующая запись VK: '+it.vk_post_id+'. Не создавай повторный пост, пока не проверишь статус на сайте VK.'))}
+if(it.error)pub.append(elem('p','error',it.error));box.append(pub)}
+function choose(id){if(dirty&&!confirm('Есть несохранённые изменения. Перейти к другой новости?'))return;currentID=id;dirty=false;lastEditorSig='';renderFeed();editorRender()}
+async function loadState(){if(refreshing)return;refreshing=true;try{const prev=s;s=await api('state');if(!lastUpdateCheck&&s.config.update_repo){lastUpdateCheck=Date.now();setTimeout(()=>checkUpdates(true),1500)}notifyUrgent(prev,s);el('stateText').textContent=s.checking?'Проверяю источники…':('Проверено: '+(s.last_check?.startsWith('0001')?'ещё не было':s.last_check?prettyTime(s.last_check):'ещё не было'));el('checkBtn').disabled=s.checking;vkDashboard();renderFeed();const aiOn=s.config.ai_provider==='ollama'&&s.config.local_ai_enabled;el('localAIButton').textContent=s.ai_busy?'ИИ: пишет пост…':aiOn?'ИИ: включён':'ИИ: выключен';el('localAIButton').classList.toggle('primary',aiOn);el('localAIButton').disabled=!!s.ai_busy;const ci=current();const sig=ci?JSON.stringify([s.config.vk_browser_mode,s.award_catalog,ci.vk_queue_error,s.config.ai_provider,s.config.local_ai_enabled,s.ai_busy,ci.id,ci.state,ci.scheduled_at,ci.vk_post_id,ci.published_at,ci.vk_browser_prepared_at,ci.vk_browser_marked_at,ci.vk_browser_export_dir,ci.verified,ci.draft,ci.rewrite_status,ci.ai_options,ci.images,ci.media_status,ci.media_error,ci.priority,ci.diff_summary,ci.media_sources,ci.media_labels,ci.media_focus,ci.error,ci.editorial_bucket,ci.editorial_override,ci.parent_game,s.vk_connected,s.posting,s.config.group_id]):'empty';if(!dirty&&sig!==lastEditorSig){editorRender();lastEditorSig=sig}if(s.last_error&&(!prev||prev.last_error!==s.last_error))notify('Некоторые источники недоступны. Открой настройки или проверь соединение.',true)}catch(e){el('stateText').textContent='Ошибка соединения';notify(e.message,true)}finally{refreshing=false}}
+async function saveNews(state){const it=current();if(!it)return;try{const nextState=state||(it.state==='missed'?'approved':it.state);const checked=el('verified').checked;if(nextState==='approved'&&!checked){notify('Сначала отметь проверку первоисточника',true);return}await api('item','POST',{id:it.id,draft:el('draft').value,comment:'',verified:checked,state:nextState});dirty=false;notify(nextState==='approved'?'Одобрено. Теперь нажми «Подготовить пост для VK».':'Сохранено');await loadState()}catch(e){notify(e.message,true)}}
+async function promoteHero(){const it=current();if(!it)return;if(dirty){notify('Сначала сохрани изменения в тексте',true);return}if(!confirm('Найти официальный баннер игры и поставить первым? Если уже 7 фото, последнее будет исключено из галереи (файл сохранится на диске).'))return;try{notify('Проверяю официальные обложки Steam…');await api('hero-image','POST',{id:it.id});lastEditorSig='';await loadState();notify('Обложка поставлена первой. Проверь качество и соответствие новости.')}catch(e){notify(e.message,true)}}
+async function moveImage(from,to){const it=current();if(!it||from===to)return;if(dirty){notify('Сначала сохрани текст поста перед перестановкой изображений',true);return;}try{await api('image-order','POST',{id:it.id,from,to});dirty=false;lastEditorSig='';await loadState()}catch(e){notify(e.message,true)}}
+async function imageBitmapFor(it,index){const rr=await fetch('/api/media?id='+encodeURIComponent(it.id)+'&index='+index,{headers:{'X-MNA-Key':KEY}});if(!rr.ok)throw Error('Не удалось загрузить изображение');return createImageBitmap(await rr.blob())}
+function coverCrop(ctx,image,x,y,w,h){const scale=Math.max(w/image.width,h/image.height),sw=w/scale,sh=h/scale;ctx.drawImage(image,(image.width-sw)/2,(image.height-sh)/2,sw,sh,x,y,w,h)}
+async function composeCover(){const it=current();if(!it||(it.images||[]).length<2||(it.images||[]).length>=7)return;if(dirty){notify('Сначала сохрани текст поста перед созданием обложки',true);return;}
+if(!confirm('Создать обложку 1280×720 из первых двух официальных изображений с названием игры? Картинка будет добавлена первой; одобрение сбросится.'))return;
+try{const a=await imageBitmapFor(it,0),b=await imageBitmapFor(it,1);const c=document.createElement('canvas');c.width=1280;c.height=720;const ctx=c.getContext('2d');coverCrop(ctx,a,0,0,1280,720);ctx.fillStyle='#07111aa6';ctx.fillRect(0,0,1280,720);coverCrop(ctx,b,782,125,444,440);ctx.strokeStyle='#d4ae70';ctx.lineWidth=5;ctx.strokeRect(782,125,444,440);
+const shade=ctx.createLinearGradient(0,0,785,0);shade.addColorStop(0,'#081321fa');shade.addColorStop(1,'#08132144');ctx.fillStyle=shade;ctx.fillRect(0,0,790,720);
+ctx.fillStyle='#dfbf88';ctx.font='bold 24px Segoe UI';ctx.fillText('MALOWAR GAMING',55,93);
+const title=(it.game||'ИГРОВЫЕ НОВОСТИ').trim().slice(0,80);let size=76;ctx.font='bold '+size+'px Segoe UI';while(ctx.measureText(title).width>705&&size>29){size-=2;ctx.font='bold '+size+'px Segoe UI'}ctx.fillStyle='#ffffff';ctx.shadowColor='#000c';ctx.shadowBlur=14;ctx.fillText(title,55,365);ctx.shadowBlur=0;ctx.fillStyle='#d4ae70';ctx.fillRect(55,395,240,6);
+const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));a.close();b.close();if(!blob)throw Error('Не удалось создать PNG');if(blob.size>12*1024*1024)throw Error('Обложка слишком большая');const fd=new FormData();fd.append('id',it.id);fd.append('images',blob,'Malowar_Cover.png');await api('upload','POST',fd);await api('image-order','POST',{id:it.id,from:it.images.length,to:0});dirty=false;lastEditorSig='';notify('Обложка добавлена первой. Проверь её перед одобрением.');await loadState();}
+catch(e){notify(e.message,true)}}
+let lastUpdateCheck=0;
+setInterval(()=>{if(s?.config?.update_repo&&Date.now()-lastUpdateCheck>24*3600*1000)checkUpdates(true)},3600000);
+async function checkUpdates(silent=false){if(!s?.config?.update_repo){if(!silent)notify('Сначала укажи официальный GitHub-репозиторий обновлений в настройках.',true);return}
+try{const info=await api('update-check');lastUpdateCheck=Date.now();if(!info.available){if(!silent)notify(info.message||'Обновлений нет');return}
+if(!info.ready){notify('Новая версия '+info.latest+' найдена, но пакет обновления ещё не подготовлен: '+info.message,true);return}
+const msg='Доступна версия '+info.latest+' (установлена '+info.current+').\n\n'+(info.notes||'')+'\n\nСкачать и установить? Программа перезапустится. Сначала сохрани черновики.';
+if(!confirm(msg))return;const rr=await api('update-install','POST',{});if(rr.started)notify('Пакет проверен. Обновлятор устанавливает новую версию.')
+}catch(e){if(!silent)notify('Ошибка проверки обновлений: '+e.message,true)}}
+async function uploadImages(files){const it=current();if(!it||!files?.length)return;try{const fd=new FormData();fd.append('id',it.id);for(const f of files)fd.append('images',f);await api('upload','POST',fd);notify('Изображения добавлены');await loadState()}catch(e){notify(e.message,true)}}
+async function autoImages(reset=false){const it=current();if(!it)return;if(reset&&!confirm('Пересобрать изображения под новость? Текущий порядок и выбор будут заменены, старые файлы останутся на диске.'))return;try{notify('Ищу официальные изображения…');await api('auto-images','POST',{id:it.id,reset});notify('Изображения добавлены. Проверь их перед публикацией.');await loadState()}catch(e){notify(e.message,true);await loadState()}}
+async function removeImage(index){const it=current();if(!it||!confirm('Удалить это изображение из черновика?'))return;try{await api('remove-image','POST',{id:it.id,index});await loadState()}catch(e){notify(e.message,true)}}
+async function vkQueueAction(action){const it=current();if(!it)return;if(action==='enqueue'&&!confirm('Создать отложенный пост VK после одобрения?\n\n'+it.game+' · '+it.title+'\n\nЗапись выйдет автоматически в назначенный слот.'))return;try{await api('vk-queue','POST',{id:it.id,action});await loadState();notify(action==='retry'?'Повторная отправка поставлена в очередь':action==='enqueue'?'Добавлено в локальную очередь; факт создания отложки подтвердит VK':'Снято из локальной очереди')}catch(e){notify(e.message,true)}}
+async function publishNow(){const it=current();if(!it)return;const yes=confirm('ОПУБЛИКОВАТЬ В VK?\n\n'+it.game+': '+it.title+'\n\nЭто создаст реальный пост в сообществе.');if(!yes)return;try{await api('publish','POST',{id:it.id});notify('Отправка начата. Следи за статусом.');await loadState()}catch(e){notify(e.message,true)}}
+function prettyMSK(x){if(!x||x.startsWith('0001'))return 'не назначено';return new Date(x).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})+' МСК'}
+function mskInput(date){const f=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});return f.format(date).replace(' ','T')}
+async function schedule(mode,at){const it=current();if(!it)return;if(dirty){notify('Сначала сохрани изменения и одобри публикацию',true);return}if(mode!=='cancel'&&!confirm('Запомнить рекомендованное время для ручной отложки VK?\n\n'+it.game+' — '+it.title+'\n\nДата по МСК: '+(mode==='queue'?'ближайший слот':at)))return;try{const res=await api('schedule','POST',{id:it.id,mode,at});notify(mode==='cancel'?'Время сброшено':'Время для ручной отложки: '+prettyMSK(res.scheduled_at));await loadState()}catch(e){notify(e.message,true)}}
+function openCalendar(){const box=el('calendarItems');box.replaceChildren();const items=[...(s?.items||[])].filter(x=>isPlanned(x)||(x.state==='missed'&&hasPlannedTime(x))).sort((a,b)=>new Date(a.scheduled_at)-new Date(b.scheduled_at));if(!items.length){box.append(elem('p','muted','Пока нет записей с выбранным временем. Редактор VK открывается без токена.'))}for(const it of items){const r=elem('div','calendar-row'),when=elem('div','cal-time',it.state==='missed'?'Пропущено':it.state==='vk_postponed'?'VK · '+prettyMSK(it.scheduled_at):prettyMSK(it.scheduled_at)),info=elem('div','');info.append(elem('b','',it.game),elem('p','muted small',it.title));const go=elem('button','','Открыть');go.onclick=()=>{el('calendarOverlay').classList.remove('open');choose(it.id)};r.append(when,info,go);box.append(r)}el('calendarOverlay').classList.add('open')}
+async function openStats(){try{const data=await api('analytics');const box=el('statsItems');box.replaceChildren();box.append(elem('h3','','Всего материалов: '+data.total));box.append(elem('p','muted','Средний редакционный приоритет: '+data.average_priority+'/100'));box.append(elem('h3','','Статусы'));for(const [state,count] of Object.entries(data.status||{}).sort((a,b)=>b[1]-a[1])){box.append(elem('div','small',(stateNames[state]||state)+': '+count));const m=elem('div','meter');const bar=elem('span');bar.style.width=(data.total?Math.round(count/data.total*100):0)+'%';m.append(bar);box.append(m)}box.append(elem('h3','','Игры с наибольшим количеством событий'));for(const g of data.games||[]){box.append(elem('p','small',g.game+' · '+g.count))}box.append(elem('h3','','Данные VK (при наличии разрешения)'));const button=elem('button','','Обновить счётчики VK');button.onclick=async()=>{try{const r=await api('vk-metrics','POST',{});notify('Обновлено постов: '+r.updated);await loadState();openStats()}catch(e){notify(e.message,true)}};box.append(button);for(const post of (s.items||[]).filter(x=>x.vk_stats).slice(0,10)){const m=post.vk_stats;box.append(elem('p','small',post.game+' · просмотры '+(m.views??'нет данных')+' · реакции '+(m.likes??'нет данных')+' · комментарии '+(m.comments??'нет данных')))}box.append(elem('h3','','Последние действия'));for(const h of (data.history||[]).slice(-20).reverse())box.append(elem('p','muted small',prettyTime(h.at)+' · '+h.action+' · '+h.details));el('statsOverlay').classList.add('open')}catch(e){notify(e.message,true)}}
+let lastSeenUrgent=new Set();function notifyUrgent(prev,next){if(!prev?.items)return;const prevIDs=new Set((prev.items||[]).map(x=>x.id));for(const it of next.items||[]){if(prevIDs.has(it.id)||it.priority<(next.config.urgent_threshold||90)||lastSeenUrgent.has(it.id))continue;lastSeenUrgent.add(it.id);notify('СРОЧНАЯ НОВОСТЬ: '+it.game+' — '+it.title);if('Notification' in window&&Notification.permission==='granted'){new Notification('Malowar: новость с высоким приоритетом',{body:it.game+' — '+it.title})}}}
+function openSettings(){if(!s)return;const c=s.config||{};el('releaseLeadCfg').value=c.release_lead_days||5;el('releaseTopCfg').value=c.release_top||15;el('releasePreviewsCfg').checked=c.release_previews!==false;el('releaseDayCfg').checked=c.release_day_posts!==false;el('releaseIndieCfg').checked=c.release_indie!==false;el('releaseWatchCfg').value=(c.release_watch||[]).map(x=>x.app_id+'|'+x.name).join('\n');el('steamCfg').value=(c.steam||[]).map(x=>x.app_id+'|'+x.name).join('\n');el('workshopCfg').value=(c.workshop||[]).map(x=>x.file_id+'|'+x.name+(x.parent_game?'|'+x.parent_game:'')).join('\n');el('coreGamesCfg').value=(c.core_games||[]).join('\n');el('indieGamesCfg').value=(c.indie_games||[]).join('\n');el('githubCfg').value=(c.github||[]).join('\n');el('rssCfg').value=(c.rss||[]).map(x=>x.name+'|'+x.url).join('\n');el('intervalCfg').value=c.interval||30;el('groupCfg').value=c.group_id||'';el('vkCommunityCfg').value=c.vk_community_url||'https://vk.ru/malowargaming';el('monitorCfg').checked=!!c.auto_monitor;el('slotsCfg').value=c.post_slots||'10:00,14:00,18:00,21:00';el('urgentCfg').value=c.urgent_threshold||90;el('hotfixCfg').checked=!!c.skip_hotfixes;el('discoveryCfg').checked=!!c.discovery;el('aiProviderCfg').value=c.ai_provider||'none';el('aiModelCfg').value=c.ai_model||'';el('localAIEnabledCfg').checked=!!c.local_ai_enabled;el('autoRewriteCfg').checked=!!c.auto_rewrite;el('autoImagesCfg').checked=c.auto_images!==false;el('updateRepoCfg').value=c.update_repo||'';el('aiToken').value='';el('aiState').textContent=s.ai_key_connected?'API-ключ подключён (до закрытия приложения)':'Ollama работает локально, OpenAI требует API-ключ';el('sourceErrors').textContent=s.last_error||'Ошибок при последней проверке не обнаружено';el('vkToken').value='';el('tokenState').textContent=s.vk_token_storage_error|| (s.vk_connected?'Токен VK сохранён в Windows · права VK можно проверить кнопкой рядом':'Токен VK не подключён');el('settingsOverlay').classList.add('open')}
+function lines(s){return s.split('\n').map(x=>x.trim()).filter(Boolean)}
+async function saveCfg(){const steam=lines(el('steamCfg').value).map(x=>{const i=x.indexOf('|');if(i<0)throw Error('Формат Steam: ID|Название');return{app_id:Number(x.slice(0,i).trim()),name:x.slice(i+1).trim()}});const releaseWatch=lines(el('releaseWatchCfg').value).map(x=>{const i=x.indexOf('|');if(i<1)throw Error('Релизный радар: формат AppID|Название');const id=Number(x.slice(0,i).trim()),name=x.slice(i+1).trim();if(!Number.isInteger(id)||id<=0||!name)throw Error('Релизный радар: неверный AppID или название');return{app_id:id,name}});const workshop=lines(el('workshopCfg').value).map(x=>{const parts=x.split('|').map(v=>v.trim());if(parts.length<2||parts.length>3)throw Error('Формат Workshop: ID|Название|Игра (необязательно)');return{file_id:parts[0],name:parts[1],parent_game:parts[2]||''}});const rss=lines(el('rssCfg').value).map(x=>{const i=x.indexOf('|');if(i<0)throw Error('Формат RSS: Название|https://...');return{name:x.slice(0,i).trim(),url:x.slice(i+1).trim()}});const github=lines(el('githubCfg').value);const cfg={steam,workshop,github,rss,release_watch:releaseWatch,hybrid_approved:s?.config?.hybrid_approved||[],release_lead_days:Number(el('releaseLeadCfg').value),release_top:Number(el('releaseTopCfg').value),release_previews:el('releasePreviewsCfg').checked,release_day_posts:el('releaseDayCfg').checked,release_indie:el('releaseIndieCfg').checked,core_games:lines(el('coreGamesCfg').value),indie_games:lines(el('indieGamesCfg').value),interval:Number(el('intervalCfg').value),auto_monitor:el('monitorCfg').checked,auto_approved:false,post_slots:el('slotsCfg').value.trim(),vk_postponed_on_approval:false,vk_browser_mode:true,urgent_threshold:Number(el('urgentCfg').value),skip_hotfixes:el('hotfixCfg').checked,discovery:el('discoveryCfg').checked,ai_provider:el('aiProviderCfg').value,ai_model:el('aiModelCfg').value.trim(),local_ai_enabled:el('aiProviderCfg').value==='ollama'&&el('localAIEnabledCfg').checked,auto_rewrite:el('autoRewriteCfg').checked,auto_images:el('autoImagesCfg').checked,update_repo:el('updateRepoCfg').value.trim(),group_id:el('groupCfg').value.trim(),vk_community_url:el('vkCommunityCfg').value.trim()};await api('settings','POST',cfg);el('settingsOverlay').classList.remove('open');notify('Настройки сохранены');await loadState()}
+async function switchLocalAI(){
+  const enabled=!(s?.config?.ai_provider==='ollama'&&s?.config?.local_ai_enabled);
+  const btn=el('localAIButton');btn.disabled=true;
+  try{
+    const reply=await api('local-ai','POST',{enabled});
+    notify(reply.message|| (enabled?'Локальный ИИ включён':'Локальный ИИ выключен'));
+    await loadState();
+  }catch(e){notify(e.message,true);await loadState()}
+  finally{btn.disabled=false}
+}
+el('localAIButton').onclick=switchLocalAI;
+el('aiProviderCfg').onchange=()=>{
+  const provider=el('aiProviderCfg').value;
+  const model=el('aiModelCfg');
+  if(provider==='ollama'&&(!model.value||model.value.startsWith('gpt-')||model.value==='qwen2.5:7b'))model.value='qwen3:14b';
+  if(provider==='openai'&&(!model.value||model.value.startsWith('qwen')))model.value='gpt-4.1-mini';
+  if(provider!=='ollama')el('localAIEnabledCfg').checked=false;
+};
+el('checkLocalAI').onclick=async()=>{
+  const target=el('localAIStatus');target.textContent='Проверяю Ollama…';
+  try{const v=await api('local-ai');target.textContent=v.connected?(v.model_available?'Ollama доступна, модель установлена. '+(v.loaded?'Загружена в память.':'Сейчас выгружена из памяти.'):'Ollama доступна, но модель '+v.model+' не установлена. Выполни ollama pull '+v.model):'Ollama не отвечает. При включённом локальном ИИ News Agent попытается автоматически запустить Ollama; если не получится, проверь её установку.'}
+  catch(e){target.textContent=e.message}
+};
+el('unloadLocalAI').onclick=async()=>{
+  if(s?.ai_busy){notify('Дождись окончания создания поста',true);return}
+  try{const result=await api('local-ai','POST',{enabled:false});notify(result.message);await loadState();el('localAIEnabledCfg').checked=false;el('localAIStatus').textContent=result.message}catch(e){notify(e.message,true)}
+};
+el('connectAI').onclick=async()=>{try{await api('ai-key','POST',{key:el('aiToken').value.trim()});el('aiToken').value='';notify('API-ключ загружен только в память');await loadState()}catch(e){notify(e.message,true)}};
+el('saveCfg').onclick=async()=>{try{await saveCfg()}catch(e){notify(e.message,true)}};
+el('connectVK').onclick=async()=>{try{const t=el('vkToken').value.trim();if(!t)throw Error('Вставь токен');await api('token','POST',{token:t});el('sourceErrors').textContent=s.last_error||'Ошибок при последней проверке не обнаружено';el('vkToken').value='';el('tokenState').textContent='Токен сохранён в Windows';notify('VK-токен зашифрован и сохранён для будущих запусков');await loadState()}catch(e){notify(e.message,true)}};
+el('checkVK').onclick=async()=>{try{const r=await api('vk-check','POST',{});el('tokenState').textContent=r.message;notify('VK: доступ к загрузке фотографий подтверждён')}catch(e){el('tokenState').textContent=e.message;notify(e.message,true)}};
+el('clearVK').onclick=async()=>{await api('token','POST',{token:''});el('tokenState').textContent='Токен отключён';notify('VK-токен удалён из хранилища Windows');await loadState()};
+el('vkDashboardBtn').onclick=()=>{filter='browser';for(const n of document.querySelectorAll('.nav'))n.classList.toggle('active',n.dataset.filter==='browser');renderFeed();};el('vkBrowserBtn').onclick=openVKWindow;el('vkCopyText').onclick=async()=>{try{await navigator.clipboard.writeText(el('vkPublisherText').value);notify('Текст скопирован. Вставь его в VK через Ctrl+V.')}catch(e){el('vkPublisherText').focus();el('vkPublisherText').select();notify('Выделил текст. Нажми Ctrl+C',true)}};el('vkOpenPhotos').onclick=async()=>{try{await vkBrowserAction('folder');notify('Открыта папка с фотографиями в нужном порядке')}catch(e){}};el('vkOpenCommunity').onclick=openVKWindow;el('vkOneClick').onclick=()=>{if(vkPublisherID)startVKPost(vkPublisherID)};el('vkAutoFill').onclick=async()=>{if(!vkPublisherID)return;if(!confirm('В VK сначала открой создание записи. Автозаполнение не заменит уже введённый текст и НЕ нажмёт «Опубликовать». Продолжить?'))return;try{const r=await vkBrowserAction('fill',vkPublisherID);notify(r.details||'Проверь редактор VK',!r.ok);if(r.text&&!r.photos)notify('Текст вставлен, фото не удалось передать. Можно нажать «Фото» и повторить либо перетащить из папки.',true)}catch(e){}};el('vkMarkManual').onclick=async()=>{if(!vkPublisherID)return;if(!confirm('Ты уже сохранил запись в официальной отложке VK и видишь её там?\n\nNews Agent только поставит отметку. Он не отправляет запись и не проверяет VK.'))return;try{await vkBrowserAction('mark',vkPublisherID);el('vkPublisherOverlay').classList.remove('open');await loadState();notify('Отмечено вручную. VK API не проверялся.')}catch(e){}};el('closeVKPublisher').onclick=()=>el('vkPublisherOverlay').classList.remove('open');el('calendarBtn').onclick=openCalendar;el('closeCalendar').onclick=()=>el('calendarOverlay').classList.remove('open');el('statsBtn').onclick=openStats;el('closeStats').onclick=()=>el('statsOverlay').classList.remove('open');el('notifyBtn').onclick=async()=>{if(!('Notification' in window)){notify('Системные уведомления не поддерживаются',true);return}const p=await Notification.requestPermission();notify(p==='granted'?'Уведомления включены':'Разрешение не предоставлено',p!=='granted')};el('updatesBtn').onclick=()=>checkUpdates(false);el('settingsBtn').onclick=openSettings;el('closeSettings').onclick=()=>el('settingsOverlay').classList.remove('open');el('settingsOverlay').addEventListener('click',e=>{if(e.target===el('settingsOverlay'))el('settingsOverlay').classList.remove('open')});
+el('checkBtn').onclick=async()=>{try{await api('check','POST',{});notify('Проверка запущена');await loadState()}catch(e){notify(e.message,true)}};
+el('exitBtn').onclick=async()=>{const wasDirty=dirty;const message=dirty?'Закрыть агент и потерять несохранённые изменения?':'Закрыть агент? Мониторинг остановится до следующего запуска.';if(!confirm(message))return;dirty=false;try{await api('exit','POST',{});window.close()}catch(e){dirty=wasDirty;notify(e.message,true)}};
+el('search').oninput=e=>{search=e.target.value;renderFeed()};el('sort').onchange=renderFeed;el('kindFilter').onchange=renderFeed;
+for(const n of document.querySelectorAll('.nav'))n.onclick=()=>{filter=n.dataset.filter;for(const b of document.querySelectorAll('.nav'))b.classList.toggle('active',b===n);renderFeed()};
+loadState();setInterval(loadState,5000);
+</script><script src="/assets/awards_editor.js"></script></body></html>

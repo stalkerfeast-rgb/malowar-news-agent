@@ -1,0 +1,28 @@
+MALOWAR NEWS AGENT 1.3.11: ЗАГРУЗКА В GITHUB RELEASES
+
+ТВОЙ РЕПОЗИТОРИЙ:
+https://github.com/stalkerfeast-rgb/malowar-news-agent
+
+ПРЯМАЯ ССЫЛКА ДЛЯ СОЗДАНИЯ РЕЛИЗА:
+https://github.com/stalkerfeast-rgb/malowar-news-agent/releases/new
+
+1. Скачай Malowar_News_Agent_1_3_11_GitHub_Release.zip и РАСПАКУЙ его.
+2. Открой ссылку выше. На экране Create a new release выбери Choose a tag -> Create new tag.
+3. Впиши v1.3.11. Target: main.
+4. Название: Malowar News Agent 1.3.11 — VK отложка, хэштеги и Malowar Awards.
+5. В описание вставь RELEASE_NOTES_1_3_11_RU.txt из распакованного архива.
+6. В раздел Attach binaries by dropping them here загрузи ИМЕННО два файла из архива:
+   Malowar_News_Agent_Update.zip
+   Malowar_News_Agent_Update.zip.sha256
+7. Поставь Release (не Pre-release) и нажми Publish release.
+8. Проверь страницу релиза:
+https://github.com/stalkerfeast-rgb/malowar-news-agent/releases/tag/v1.3.11
+
+Не загружай вместо двух файлов внешний ZIP целиком. Обновлятор приложения ожидает фиксированное имя Malowar_News_Agent_Update.zip с хэшем SHA-256.
+
+ВАЖНО: сейчас основной репозиторий на main может содержать только README. Релизные бинарники работают и без загруженных исходников, но для дальнейшей разработки есть отдельный Source.zip. Ни VK-токены, ни папка Data, ни config/ state.json в GitHub не загружаются.
+
+Настройки News Agent → канал обновлений:
+stalkerfeast-rgb/malowar-news-agent
+
+Если установил 1.3.11 вручную, обновлятор не должен предлагать эту же версию повторно.

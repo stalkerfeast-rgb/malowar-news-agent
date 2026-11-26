@@ -1,0 +1,25 @@
+MALOWAR NEWS AGENT 1.3.10 — КАК ЗАГРУЗИТЬ ОБНОВЛЕНИЕ НА GITHUB
+
+ПРЯМАЯ ССЫЛКА ДЛЯ СОЗДАНИЯ РЕЛИЗА:
+https://github.com/stalkerfeast-rgb/malowar-news-agent/releases/new
+
+1. Распакуй Malowar_News_Agent_1_3_10_GitHub_Release.zip.
+2. По ссылке выше на GitHub нажми Choose a tag / Create new tag и введи: v1.3.10.
+3. Target: main (если исходный код не загружен в main, это пока тег от старого коммита; пакеты бинарных файлов всё равно загружаются в релиз как assets).
+4. Title: Malowar News Agent 1.3.10 — Interest Score и гибридные стратегии.
+5. Description: вставь содержимое RELEASE_NOTES_1_3_10_RU.txt.
+6. В Attach binaries by dropping them here загрузи ИМЕННО ДВА файла ИЗ архива GitHub Release:
+   - Malowar_News_Agent_Update.zip
+   - Malowar_News_Agent_Update.zip.sha256
+   НЕ загружай внешний архив 1_3_10_GitHub_Release.zip как единственный файл.
+7. Проверь названия файлов, установи Release (не Pre-release), нажми Publish release.
+8. После публикации проверь:
+https://github.com/stalkerfeast-rgb/malowar-news-agent/releases/tag/v1.3.10
+
+Токены VK, OpenAI, state.json, пароли и личные данные в релиз не загружай.
+Основной репозиторий содержит только README. Релиз бинарника работает независимо от того, загружены ли исходники; для полноценного кодового сопровождения исходники нужно добавить отдельно.
+
+ПРОВЕРКА ОБНОВЛЕНИЯ
+В приложении Настройки → канал обновлений укажи:
+stalkerfeast-rgb/malowar-news-agent
+Затем нажми «Обновления». Проверка через GitHub Releases не устанавливает версии автоматически без подтверждения.

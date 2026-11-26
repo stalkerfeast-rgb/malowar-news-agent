@@ -196,12 +196,26 @@ function renderWorkshopTop(){
   section.append(list);box.append(section);
  }
 }
+function renderStrategyRanking(box){
+ const ranking=s?.strategy_ranks||[];
+ const details=elem('details','card');
+ details.append(elem('summary','','Игры под наблюдением · '+ranking.length));
+ details.append(elem('p','muted small',ranking.length?'Средний онлайн по замерам Steam за последние 30 дней. При первом замере показан текущий онлайн.':'Рейтинг появится после проверки Steam.'));
+ const list=elem('ol','');
+ for(const game of ranking){
+  const row=elem('li','',game.name+' · '+game.average_players.toLocaleString('ru-RU')+' игроков');
+  list.append(row);
+ }
+ if(ranking.length)details.append(list);
+ box.append(details);
+}
 function renderFeed(){if(filter==='radar'){renderRadar();return}if(filter==='workshop-top'){renderWorkshopTop();return}const items=listItems(),box=el('feedItems');const selected=current();
 if(!dirty&&(!selected||(isDiscoveryFeed()&&selected.editorial_bucket==='candidate')||(filter==='section:candidate'&&selected.editorial_bucket!=='candidate'))){
  const nextID=items[0]?.id??null;
  if(currentID!==nextID){currentID=nextID;lastEditorSig='';editorRender()}
 }
-box.replaceChildren();el('count').textContent='('+items.length+')';if(!items.length){const d=document.createElement('div');d.className='empty';d.textContent='Пока нет новостей по выбранному фильтру. Нажми «Проверить сейчас» или добавь источники.';box.append(d);return}
+const rankingOpen=box.querySelector('details')?.open;
+box.replaceChildren();if(filter==='section:major'){renderStrategyRanking(box);box.querySelector('details').open=!!rankingOpen}el('count').textContent='('+items.length+')';if(!items.length){const d=document.createElement('div');d.className='empty';d.textContent='Пока нет новостей по выбранному фильтру. Нажми «Проверить сейчас» или добавь источники.';box.append(d);return}
 for(const it of items){const card=document.createElement('button');card.className='entry'+(it.id===currentID?' selected':'');const top=document.createElement('div');top.className='entry-head';const a=document.createElement('span');a.textContent=it.game;const date=document.createElement('span');date.textContent=prettyTime(it.time);top.append(a,date);const title=document.createElement('h3');title.textContent=it.title;const row=document.createElement('p');const badge=document.createElement('span');badge.className='tag '+it.state;badge.textContent=stateNames[it.state]||it.state;const cat=document.createElement('span');cat.textContent='  ·  '+(sectionNames[it.editorial_bucket]||'Кандидат')+' · '+(kindNames[it.event_kind]||it.category)+' · '+it.source+' · ★ '+(it.priority||'?')+'/100'+' · Фото '+(it.images||[]).length+'/7'+(it.scheduled_at&&!it.scheduled_at.startsWith('0001')?' · '+prettyMSK(it.scheduled_at):'')+(it.vk_post_id?' · VK #'+it.vk_post_id:'')+(it.priority>=s.config.urgent_threshold?' · СРОЧНО':'');row.append(badge,cat);card.append(top,title,row);card.onclick=()=>choose(it.id);box.append(card)}}
 function current(){return s?.items?.find(x=>x.id===currentID)}
 function elem(tag,cls,text){const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x}

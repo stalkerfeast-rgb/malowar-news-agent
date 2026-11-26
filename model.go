@@ -124,6 +124,7 @@ type saved struct {
 	RadarChecked  time.Time               `json:"radar_checked,omitempty"`
 	RadarError    string                  `json:"radar_error,omitempty"`
 	WorkshopRanks map[int]workshopRanking `json:"workshop_ranks,omitempty"`
+	StrategyRanks strategyRanking         `json:"strategy_ranks,omitempty"`
 	AwardCatalog  []CatalogAward          `json:"award_catalog,omitempty"`
 	LastCheck     time.Time               `json:"last_check"`
 	LastError     string                  `json:"last_error"`
@@ -319,12 +320,22 @@ func (a *app) snapshot() map[string]any {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	items := make([]*Item, 0, len(a.state.Items))
+	strategyIDs := make(map[int]bool, len(a.state.StrategyRanks.Games))
+	for _, game := range a.state.StrategyRanks.Games {
+		strategyIDs[game.AppID] = true
+	}
 	for _, it := range a.state.Items {
 		copyIt := *it
 		copyIt.Images = append([]string(nil), it.Images...)
 		copyIt.MediaSources = append([]string(nil), it.MediaSources...)
 		copyIt.MediaLabels = append([]string(nil), it.MediaLabels...)
 		copyIt.EditorialBucket = editorialBucket(copyIt, a.state.Config)
+		if copyIt.EditorialBucket == bucketCandidate && copyIt.EditorialOverride == "" && copyIt.Source == "Steam News" {
+			id, _ := exactSteamAppID(copyIt, nil)
+			if strategyIDs[id] {
+				copyIt.EditorialBucket = bucketMajor
+			}
+		}
 		copyIt.EventKind = eventKind(copyIt)
 		if id := featuredWorkshopID(copyIt); id != "" {
 			copyIt.WorkshopChangelog = workshopChangesURL + id
@@ -339,7 +350,7 @@ func (a *app) snapshot() map[string]any {
 		items = append(items, &copyIt)
 	}
 	sort.Slice(items, func(i, j int) bool { return items[i].Time.After(items[j].Time) })
-	return map[string]any{"audit": a.state.Audit, "config": a.state.Config, "items": items, "last_check": a.state.LastCheck, "last_error": a.state.LastError, "checking": a.checking, "posting": a.posting, "vk_connected": a.token != "", "vk_token_saved": a.vkVault != "" && a.token != "", "vk_token_storage_error": a.vkVaultErr, "data_dir": a.dataDir, "discovered_count": len(a.state.Discovered), "ai_key_connected": a.aiKey != "", "ai_busy": a.aiBusy, "local_ai_enabled": a.state.Config.LocalAIEnabled, "radar": a.radarTopLocked(), "radar_all": a.radarAllLocked(), "radar_checked": a.state.RadarChecked, "radar_error": a.state.RadarError, "radar_busy": a.radarBusy, "workshop_ranks": a.state.WorkshopRanks, "award_catalog": a.state.AwardCatalog}
+	return map[string]any{"audit": a.state.Audit, "config": a.state.Config, "items": items, "last_check": a.state.LastCheck, "last_error": a.state.LastError, "checking": a.checking, "posting": a.posting, "vk_connected": a.token != "", "vk_token_saved": a.vkVault != "" && a.token != "", "vk_token_storage_error": a.vkVaultErr, "data_dir": a.dataDir, "discovered_count": len(a.state.Discovered), "ai_key_connected": a.aiKey != "", "ai_busy": a.aiBusy, "local_ai_enabled": a.state.Config.LocalAIEnabled, "radar": a.radarTopLocked(), "radar_all": a.radarAllLocked(), "radar_checked": a.state.RadarChecked, "radar_error": a.state.RadarError, "radar_busy": a.radarBusy, "strategy_ranks": a.state.StrategyRanks.Games, "strategy_rank_checked": a.state.StrategyRanks.Checked, "workshop_ranks": a.state.WorkshopRanks, "award_catalog": a.state.AwardCatalog}
 }
 func (a *app) updateConfig(c Config) error {
 	if _, err := validateSlots(c.PostSlots); err != nil {

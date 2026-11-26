@@ -272,6 +272,7 @@ func (a *app) checkNow() {
 	a.checking = true
 	c := a.state.Config
 	previousWorkshopRanks := a.state.WorkshopRanks
+	previousStrategyRanks := a.state.StrategyRanks
 	a.mu.Unlock()
 	go func() {
 		defer func() { a.mu.Lock(); a.checking = false; a.mu.Unlock() }()
@@ -279,6 +280,8 @@ func (a *app) checkNow() {
 		defer cancel()
 		ranks := make(chan map[int]workshopRanking, 1)
 		go func() { ranks <- scanWorkshopRankings(ctx, previousWorkshopRanks, time.Now().UTC()) }()
+		strategies := make(chan strategyRanking, 1)
+		go func() { strategies <- refreshStrategyRanking(ctx, previousStrategyRanks, time.Now().UTC()) }()
 		all := []Item{}
 		errs := []string{}
 		for _, s := range c.Steam {
@@ -294,6 +297,18 @@ func (a *app) checkNow() {
 		explicit := map[int]bool{}
 		for _, src := range c.Steam {
 			explicit[src.AppID] = true
+		}
+		strategyRanks := <-strategies
+		steamNews := make([][]Item, len(strategyRanks.Games))
+		boundedSteamWork(len(strategyRanks.Games), func(i int) {
+			source := strategyRanks.Games[i].SteamSource
+			if !explicit[source.AppID] {
+				steamNews[i], _ = fetchSteam(ctx, source)
+			}
+		})
+		for i, news := range steamNews {
+			explicit[strategyRanks.Games[i].AppID] = true
+			all = append(all, news...)
 		}
 		a.mu.Lock()
 		approvedHybridNames := map[int]string{}
@@ -377,7 +392,10 @@ func (a *app) checkNow() {
 			}
 			// Recheck freshly listed games on every scan so major releases are timely.
 			batch := []SteamSource{}
-			inBatch := map[int]bool{}
+			inBatch := make(map[int]bool, len(explicit))
+			for id := range explicit {
+				inBatch[id] = true
+			}
 			for j, source := range newFound {
 				if j >= 8 {
 					break
@@ -411,6 +429,7 @@ func (a *app) checkNow() {
 		workshopRanks := <-ranks
 		a.mu.Lock()
 		a.state.WorkshopRanks = workshopRanks
+		a.state.StrategyRanks = strategyRanks
 		known := map[string]bool{}
 		fingerprints := map[string]bool{}
 		for _, it := range a.state.Items {

@@ -9,6 +9,9 @@ import (
 )
 
 func openAppWindow(url string) {
+	if restoreAppWindow(url) {
+		return
+	}
 	paths := []string{}
 	if x := os.Getenv("PROGRAMFILES(X86)"); x != "" {
 		paths = append(paths, filepath.Join(x, "Microsoft", "Edge", "Application", "msedge.exe"))

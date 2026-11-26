@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -47,6 +48,10 @@ func (a *app) serve() error {
 	if err != nil {
 		return err
 	}
+	serverURL := fmt.Sprintf("http://127.0.0.1:%d/", listener.Addr().(*net.TCPAddr).Port)
+	stop := make(chan struct{})
+	var stopOnce sync.Once
+	requestExit := func() { stopOnce.Do(func() { close(stop) }) }
 	mux := http.NewServeMux()
 	// The logo is bundled with the executable; users never need to fetch remote artwork.
 	mux.HandleFunc("/assets/mascot.png", func(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +102,7 @@ func (a *app) serve() error {
 		}
 		b, _ := webFiles.ReadFile("app/index.html")
 		page := strings.ReplaceAll(string(b), "__APP_SECRET__", a.secret)
+		page = strings.Replace(page, "<title>Malowar News Agent</title>", "<title>"+appWindowTitle(serverURL)+"</title>", 1)
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("X-Frame-Options", "DENY")
@@ -686,27 +692,26 @@ func (a *app) serve() error {
 				return
 			}
 			jsonResponse(w, 200, map[string]bool{"ok": true})
-			go func() {
-				time.Sleep(250 * time.Millisecond)
-				_ = os.Remove(filepath.Join(a.dataDir, "active.json"))
-				os.Exit(0)
-			}()
+			requestExit()
 		default:
 			failure(w, 404, "Не найдено")
 		}
 	})
 	server := &http.Server{Handler: mux, ReadHeaderTimeout: 5 * time.Second}
-	url := fmt.Sprintf("http://127.0.0.1:%d/", listener.Addr().(*net.TCPAddr).Port)
-	log.Printf("Malowar News Agent is running locally at %s", url)
-	if bb, err := json.Marshal(map[string]string{"url": url}); err == nil {
-		_ = os.WriteFile(filepath.Join(a.dataDir, "active.json"), bb, 0600)
+	log.Printf("Malowar News Agent is running locally at %s", serverURL)
+	active := filepath.Join(a.dataDir, "active.json")
+	defer os.Remove(active)
+	if bb, err := json.Marshal(map[string]string{"url": serverURL}); err == nil {
+		_ = os.WriteFile(active, bb, 0600)
 	}
 	go func() {
 		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
 			log.Print(err)
 		}
 	}()
-	openAppWindow(url)
+	closeTray := startAppTray(serverURL, requestExit)
+	defer closeTray()
+	openAppWindow(serverURL)
 	a.mu.Lock()
 	auto := a.state.Config.AutoMonitor
 	a.mu.Unlock()
@@ -716,7 +721,18 @@ func (a *app) serve() error {
 	}
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
-	for range ticker.C {
+	for {
+		select {
+		case <-stop:
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			err := server.Shutdown(ctx)
+			cancel()
+			if err != nil {
+				_ = server.Close()
+			}
+			return nil
+		case <-ticker.C:
+		}
 		a.mu.Lock()
 		should := a.state.Config.AutoMonitor && (!a.checking) && time.Since(a.state.LastCheck) >= time.Duration(a.state.Config.Interval)*time.Minute
 		a.mu.Unlock()
@@ -743,7 +759,10 @@ func (a *app) serve() error {
 		a.processSchedule(time.Now().UTC())
 		a.processVKQueue(time.Now().UTC())
 	}
-	return nil
+}
+
+func appWindowTitle(localURL string) string {
+	return "Malowar News Agent · " + strings.TrimSuffix(strings.TrimPrefix(localURL, "http://127.0.0.1:"), "/")
 }
 func (a *app) handleUpload(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 85<<20)
